@@ -9,6 +9,8 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-009688)](https://fastapi.tiangolo.com)
 [![Tests](https://img.shields.io/badge/Tests-585%20passing-success)](./tests)
 [![Coverage](https://img.shields.io/badge/Coverage-61%25-yellow)](./coverage)
+[![CI Status](https://github.com/ECONEURA/ECONEURA./actions/workflows/ci-updated.yml/badge.svg)](https://github.com/ECONEURA/ECONEURA./actions)
+[![Build Status](https://github.com/ECONEURA/ECONEURA./actions/workflows/build-web.yml/badge.svg)](https://github.com/ECONEURA/ECONEURA./actions)
 
 ---
 

@@ -52,8 +52,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared packages
-        run: pnpm -w build || echo "No root build script"
-        continue-on-error: true
+        run: pnpm -w build
 
       - name: Build web app
         working-directory: apps/web
