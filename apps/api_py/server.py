@@ -1,12 +1,16 @@
 import json,re,sys,os,datetime,urllib.request,urllib.error
 from http.server import BaseHTTPRequestHandler,HTTPServer
 
-ROUTES=[f"neura-{i}" for i in range(1,11)]
-ROUTING_PATH=os.path.join("packages","config","agent-routing.json")
+ROUTES=[f"neura-{i}" for i in range(1,12)]  # 11 agentes ahora
+ROUTING_PATH=os.path.join("packages","configs","agent-routing.json")  # configs (plural)
 def load_routing():
   try:
-    with open(ROUTING_PATH,"r",encoding="utf-8") as f: return {r["id"]:r for r in json.load(f)}
-  except Exception: return {}
+    with open(ROUTING_PATH,"r",encoding="utf-8") as f: 
+      data = json.load(f)
+      return {r["id"]:r for r in data.get("routes", data)}  # Soporte ambos formatos
+  except Exception as e: 
+    print(f"⚠️ Warning: Could not load routing config: {e}", file=sys.stderr)
+    return {}
 ROUTING=load_routing()
 
 def fwd_to_make(aid, body:bytes, headers, timeout_s:float):
