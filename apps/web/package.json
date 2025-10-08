@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
-    "typecheck": "node ../../scripts/run-tsc.js --noEmit"
+    "typecheck": "node ../../scripts/run-tsc.js --noEmit",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "lucide-react": "0.441.0",

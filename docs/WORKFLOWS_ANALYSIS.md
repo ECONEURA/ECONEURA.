@@ -2,7 +2,25 @@
 
 **Fecha:** 8 de octubre de 2025  
 **Proyecto:** ECONEURA  
-**Estado:** Análisis completo de 9 workflows existentes
+**Estado:** Análisis completo de 9 workflows existentes  
+**Última actualización:** 8 oct 2025 (scripts corregidos)
+
+---
+
+## 🔄 ACTUALIZACIONES RECIENTES
+
+### ✅ **CORRECCIONES APLICADAS (8 oct 2025)**
+
+#### 1. Scripts package.json añadidos
+- ✅ Root `package.json`: Añadido `build`, `test`, `test:coverage`
+- ✅ `apps/web/package.json`: Añadido `test`, `test:coverage`
+- 📄 Detalles: `docs/SCRIPT_FIXES.md`
+
+#### 2. Workflows limpiados
+- ✅ `deploy-azure.yml` línea 70: Eliminado `|| true` (CRÍTICO)
+- ✅ `ci-basic.yml` línea 48: Eliminado fallback innecesario
+- ✅ `build-web.yml` línea 55: Eliminado fallback innecesario
+- 📄 Autocrítica: `docs/AUTOCRITICA_SCRIPTS.md`
 
 ---
 

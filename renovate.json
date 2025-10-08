@@ -1,0 +1,60 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":enablePreCommit",
+    "group:allNonMajor"
+  ],
+  "timezone": "Europe/Madrid",
+  "schedule": ["before 6am on monday"],
+  "labels": ["dependencies", "automated"],
+  "assignees": ["@ECONEURA"],
+  "reviewers": ["@ECONEURA"],
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "all non-major dependencies",
+      "groupSlug": "all-minor-patch",
+      "automerge": true
+    },
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["major-update"],
+      "automerge": false
+    },
+    {
+      "matchPackagePatterns": ["^@types/"],
+      "groupName": "type definitions",
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^eslint", "^prettier"],
+      "groupName": "linters",
+      "automerge": true
+    },
+    {
+      "matchPackagePatterns": ["^vitest", "^@vitest/"],
+      "groupName": "vitest",
+      "automerge": true
+    },
+    {
+      "matchDatasources": ["npm"],
+      "matchPackageNames": ["typescript"],
+      "enabled": true,
+      "automerge": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security"],
+    "assignees": ["@ECONEURA"],
+    "automerge": false
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on the first day of the month"]
+  }
+}
