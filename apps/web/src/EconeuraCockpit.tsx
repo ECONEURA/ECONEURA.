@@ -27,6 +27,9 @@ import {
   ListChecks,
   CalendarDays,
   Copy,
+  Mic,
+  MicOff,
+  Volume2,
 } from 'lucide-react';
 
 /**
@@ -145,7 +148,10 @@ function correlationId() {
 
 async function invokeAgent(agentId: string, payload: any = {}) {
   const token = (globalThis as any).__ECONEURA_BEARER as string | undefined;
-  const base = (env.GW_URL || '/api').replace(/\/$/, '');
+  const base = (env.GW_URL || readVar('__ECONEURA_GW_URL', 'VITE_NEURA_GW_URL', 'NEURA_GW_URL') || '/api').replace(/\/$/, '');
+  const route = readVar('__ECONEURA_ROUTE', 'VITE_DEFAULT_ROUTE', 'DEFAULT_ROUTE') || 'azure';
+  const corrId = correlationId();
+  
   // Map common test agent ids to deterministic API routes expected by tests
   let url = `${base}/api/invoke/${agentId}`;
   if (agentId.includes('okr')) url = '/api/agents/okr';
@@ -153,13 +159,20 @@ async function invokeAgent(agentId: string, payload: any = {}) {
   else if (agentId.includes('int') || agentId.includes('integration'))
     url = '/api/agents/integration';
   if (!token) return { ok: true, simulated: true, output: `Simulado ${agentId}` };
+  
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+      'X-Route': route,
+      'X-Correlation-Id': corrId,
     },
-    body: JSON.stringify({ input: payload?.input ?? '' }),
+    body: JSON.stringify({ 
+      input: payload?.input ?? '',
+      policy: { pii: 'mask' },
+      meta: { agentId, source: 'ui' },
+    }),
   }).catch(e => ({ ok: false, error: e }) as any);
 
   const ok = typeof (res as any).ok === 'boolean' ? (res as any).ok : true;
@@ -191,6 +204,53 @@ const DeptIcon: Record<string, React.ElementType> = {
 function getDeptIcon(id: string): React.ElementType {
   const Icon = (DeptIcon as any)[id];
   return isReactComponent(Icon) ? Icon : Crown;
+}
+
+// Iconos específicos por agente
+function iconForAgent(agentId: string): React.ElementType {
+  const map: Record<string, React.ElementType> = {
+    'ceo-vision': Crown,
+    'ceo-okr': Target,
+    'ceo-compliance': ShieldCheck,
+    'ceo-int': Workflow,
+    'ia-analytics': LineChart,
+    'ia-research': Brain,
+    'ia-rec': MessageCircle,
+    'ia-support': Inbox,
+    'cso-strategy': Radar,
+    'cso-alliances': Users,
+    'cso-market': TrendingUp,
+    'cso-innovation': Bug,
+    'cto-platform': Cpu,
+    'cto-tech': Database,
+    'cto-cicd': Activity,
+    'cto-perf': Gauge,
+    'ciso-sec': Shield,
+    'ciso-audit': ShieldCheck,
+    'ciso-infra': Database,
+    'ciso-risk': Radar,
+    'coo-ops': Workflow,
+    'coo-supply': ListChecks,
+    'coo-quality': ClipboardList,
+    'coo-auto': Activity,
+    'chro-talent': Users,
+    'chro-dev': UserCheck,
+    'chro-culture': CalendarDays,
+    'chro-wellness': Activity,
+    'mkt-campaigns': Megaphone,
+    'mkt-content': FileText,
+    'mkt-social': MessageCircle,
+    'mkt-analytics': LineChart,
+    'cfo-planning': FileBarChart2,
+    'cfo-treasury': Wallet,
+    'cfo-compliance': ShieldCheck,
+    'cfo-reporting': TrendingUp,
+    'cdo-governance': Database,
+    'cdo-bi': LineChart,
+    'cdo-ml': Brain,
+    'cdo-platform': Cpu,
+  };
+  return map[agentId] || Activity;
 }
 
 // Colores
@@ -520,26 +580,6 @@ const DATA: Department[] = [
   },
 ];
 
-// Icono según agente
-function iconForAgent(title: string): React.ElementType {
-  const t = title.toLowerCase();
-  let Icon: any = ClipboardList;
-  if (t.includes('agenda')) Icon = CalendarDays;
-  else if (t.includes('anuncio') || t.includes('comunicado')) Icon = Megaphone;
-  else if (t.includes('resumen') || t.includes('registro')) Icon = FileText;
-  else if (t.includes('okr') || t.includes('score')) Icon = Gauge;
-  else if (t.includes('salud') || t.includes('health')) Icon = Activity;
-  else if (t.includes('cost') || t.includes('gasto')) Icon = FileBarChart2;
-  else if (t.includes('prompts')) Icon = MessageCircle;
-  else if (t.includes('cuotas')) Icon = ListChecks;
-  else if (t.includes('incidenc')) Icon = Bug;
-  else if (t.includes('observabilidad') || t.includes('slo')) Icon = Radar;
-  else if (t.includes('phishing')) Icon = Inbox;
-  else if (t.includes('email')) Icon = Mail;
-  else if (t.includes('tendencias')) Icon = TrendingUp;
-  return isReactComponent(Icon) ? Icon : ClipboardList;
-}
-
 function TagIcon({ text }: { text: string }) {
   const s = text.toLowerCase();
   const Maybe: any = s.includes('riesgo')
@@ -579,6 +619,8 @@ export default function EconeuraCockpit() {
   const [activity, setActivity] = useState<ActivityEvent[]>([]);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatMsgs, setChatMsgs] = useState<{ id: string; text: string }[]>([]);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const dept = useMemo(() => departments.find(d => d.id === activeDept)!, [departments, activeDept]);
 
   const filteredAgents = useMemo(() => {
@@ -676,6 +718,31 @@ export default function EconeuraCockpit() {
       },
       ...v,
     ]);
+  }
+
+  function toggleVoice() {
+    setVoiceEnabled(!voiceEnabled);
+    if (isRecording) {
+      setIsRecording(false);
+    }
+  }
+
+  function startRecording() {
+    if (!voiceEnabled) return;
+    setIsRecording(true);
+    // Aquí iría la lógica de grabación de voz con Web Speech API
+  }
+
+  function stopRecording() {
+    setIsRecording(false);
+    // Aquí iría la lógica de detener grabación y enviar al backend
+  }
+
+  function speakMessage(text: string) {
+    if (!voiceEnabled || !('speechSynthesis' in window)) return;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'es-ES';
+    window.speechSynthesis.speak(utterance);
   }
 
 
@@ -870,28 +937,76 @@ export default function EconeuraCockpit() {
       {chatOpen && (
         <div className='fixed inset-0 bg-black/30 z-40' onClick={() => setChatOpen(false)}>
           <aside
-            className='absolute right-0 top-0 h-full w-[380px] bg-white border-l p-4 overflow-y-auto'
+            className='absolute right-0 top-0 h-full w-[380px] bg-white border-l flex flex-col'
             onClick={e => e.stopPropagation()}
           >
-            <div className='text-sm font-semibold mb-2'>{dept.name} — Chat</div>
-            <div className='space-y-2'>
-              <button className='text-xs px-3 py-1 rounded-full border bg-gray-50'>
-                Resumen del día
-              </button>
+            <div className='p-4 border-b'>
+              <div className='flex items-center justify-between mb-2'>
+                <div className='text-sm font-semibold'>{dept.name} — Chat</div>
+                <button
+                  onClick={toggleVoice}
+                  className={cx(
+                    'h-8 w-8 rounded-lg border flex items-center justify-center',
+                    voiceEnabled ? 'bg-emerald-50 text-emerald-700 border-emerald-300' : 'bg-gray-50'
+                  )}
+                  title={voiceEnabled ? 'Desactivar voz' : 'Activar voz'}
+                >
+                  {voiceEnabled ? <Volume2 className='w-4 h-4' /> : <Volume2 className='w-4 h-4 opacity-40' />}
+                </button>
+              </div>
+              <div className='space-y-2'>
+                <button className='text-xs px-3 py-1 rounded-full border bg-gray-50'>
+                  Resumen del día
+                </button>
+              </div>
             </div>
-            <div className='mt-3 space-y-3'>
-              {chatMsgs.map(m => (
-                <div key={m.id} className='bg-gray-50 border rounded-lg p-3 text-sm'>
-                  {m.text}
+            
+            <div className='flex-1 overflow-y-auto p-4'>
+              <div className='space-y-3'>
+                {chatMsgs.map(m => (
+                  <div key={m.id} className='bg-gray-50 border rounded-lg p-3 text-sm flex items-start justify-between gap-2'>
+                    <span className='flex-1'>{m.text}</span>
+                    {voiceEnabled && (
+                      <button
+                        onClick={() => speakMessage(m.text)}
+                        className='flex-shrink-0 w-6 h-6 rounded hover:bg-gray-200 flex items-center justify-center'
+                        title='Reproducir con voz'
+                      >
+                        <Volume2 className='w-3.5 h-3.5' />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className='p-4 border-t'>
+              <div className='flex gap-2'>
+                <input
+                  className='flex-1 border rounded-lg h-9 px-3 text-sm'
+                  placeholder='Escribe tu mensaje...'
+                />
+                {voiceEnabled && (
+                  <button
+                    onMouseDown={startRecording}
+                    onMouseUp={stopRecording}
+                    onMouseLeave={stopRecording}
+                    className={cx(
+                      'h-9 w-9 rounded-lg border flex items-center justify-center',
+                      isRecording ? 'bg-red-50 border-red-300 text-red-600' : 'hover:bg-gray-50'
+                    )}
+                    title='Mantén presionado para grabar'
+                  >
+                    {isRecording ? <MicOff className='w-4 h-4' /> : <Mic className='w-4 h-4' />}
+                  </button>
+                )}
+                <button className='h-9 px-3 rounded-lg border hover:bg-gray-50'>Enviar</button>
+              </div>
+              {voiceEnabled && (
+                <div className='mt-2 text-[10px] text-gray-500 text-center'>
+                  {isRecording ? '🔴 Grabando...' : 'Mantén presionado el micrófono para hablar'}
                 </div>
-              ))}
-            </div>
-            <div className='mt-3 flex gap-2'>
-              <input
-                className='flex-1 border rounded-lg h-9 px-3 text-sm'
-                placeholder='Escribe tu mensaje...'
-              />
-              <button className='h-9 px-3 rounded-lg border'>Enviar</button>
+              )}
             </div>
           </aside>
         </div>
@@ -903,12 +1018,12 @@ export default function EconeuraCockpit() {
 // Tarjeta de agente
 type AgentCardProps = { a: Agent; busy?: boolean; onRun: () => Promise<any> | void; onClone: () => void };
 function AgentCard({ a, busy, onRun, onClone }: AgentCardProps) {
-  const I: any = iconForAgent(a.title);
+  const AgentIcon = iconForAgent(a.id);
   return (
     <div className='bg-white rounded-xl border p-4 flex flex-col'>
       <div className='flex items-start justify-between gap-3'>
         <div className='flex items-start gap-2'>
-          {React.createElement(I, { className: 'w-4 h-4 mt-0.5 text-[#4b5563]' })}
+          <AgentIcon className='w-4 h-4 mt-0.5 text-[#4b5563]' />
           <div>
             <div className='font-semibold'>{a.title}</div>
             <div className='text-sm text-gray-600'>{a.desc}</div>
@@ -932,7 +1047,7 @@ function AgentCard({ a, busy, onRun, onClone }: AgentCardProps) {
       {/* Barra fija 11% (paridad visual) */}
       <div className='mt-3'>
         <div className='h-2 rounded bg-gray-100 overflow-hidden'>
-          <div className='h-2 bg-gray-300' style={{ width: '11%' }} />
+          <div className='h-2 bg-blue-400' />
         </div>
         <div className='mt-1 text-[11px] text-gray-500'>11%</div>
       </div>
@@ -950,7 +1065,7 @@ function AgentCard({ a, busy, onRun, onClone }: AgentCardProps) {
         >
           Ejecutar
         </button>
-        <button className='h-9 px-3 rounded-md border text-sm'>Pausar</button>
+        <button className='h-9 px-3 rounded-md border text-sm hover:bg-gray-50'>Pausar</button>
         <button
           onClick={() => onClone()}
           className='h-9 px-3 rounded-md border text-sm hover:bg-gray-50 flex items-center gap-1'

@@ -37,6 +37,8 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4(jsdom@27.0.0)
 
+  apps/api_node: {}
+
   apps/cockpit:
     dependencies:
       lucide-react:

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ECONEURA Cockpit - Vista Previa</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, createElement } = React;
+
+    // Utilidades
+    const cx = (...cls) => cls.filter(Boolean).join(" ");
+
+    // SVG Icons mejorados con multi-path support
+    const Icon = ({ paths, className = "w-5 h-5" }) => (
+      <svg className={className} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+        {Array.isArray(paths) ? paths.map((d, i) => <path key={i} d={d} />) : <path d={paths} />}
+      </svg>
+    );
+
+    // Iconos mejorados con paths detallados de Lucide
+    const Crown = (props) => <Icon paths={["m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"]} {...props} />;
+    const Brain = (props) => <Icon paths={["path://M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z", "M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z", "M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4", "M17.599 6.5a3 3 0 0 0 .399-1.375", "M6.003 5.125A3 3 0 0 0 6.401 6.5", "M3.477 10.896a4 4 0 0 1 .585-.396", "M19.938 10.5a4 4 0 0 1 .585.396", "M6 18a4 4 0 0 1-1.967-.516", "M19.967 17.484A4 4 0 0 1 18 18"]} {...props} />;
+    const Shield = (props) => <Icon paths={["M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"]} {...props} />;
+    const Cpu = (props) => <Icon paths={["M4 6h16M4 10h16M4 14h16M4 18h16", "rect://4,4,16,16,2"]} {...props} />;
+    const Users = (props) => <Icon paths={["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "circle://9,7,4", "M22 21v-2a4 4 0 0 0-3-3.87", "M16 3.13a4 4 0 0 1 0 7.75"]} {...props} />;
+    const Target = (props) => <Icon paths={["circle://12,12,10", "circle://12,12,6", "circle://12,12,2"]} {...props} />;
+    const LineChart = (props) => <Icon paths={["M3 3v18h18", "M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"]} {...props} />;
+    const Wallet = (props) => <Icon paths={["M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1", "M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"]} {...props} />;
+    const Database = (props) => <Icon paths={["ellipse://12,5,8,3", "M4 5v14a8 3 0 0 0 16 0V5", "M4 12a8 3 0 0 0 16 0"]} {...props} />;
+    const Workflow = (props) => <Icon paths={["rect://9,3,6,6,2", "rect://9,15,6,6,2", "M12 9v6", "M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2", "M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2", "M6 15H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2", "M18 15h2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2h-2"]} {...props} />;
+    const Mic = (props) => <Icon paths={["M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z", "M19 10v2a7 7 0 0 1-14 0v-2", "M12 19v4", "M8 23h8"]} {...props} />;
+    const MicOff = (props) => <Icon paths={["M2 2l20 20", "M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6", "M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23", "M12 19v4", "M8 23h8"]} {...props} />;
+    const Volume2 = (props) => <Icon paths={["M11 5L6 9H2v6h4l5 4z", "M19.07 4.93a10 10 0 0 1 0 14.14", "M15.54 8.46a5 5 0 0 1 0 7.07"]} {...props} />;
+    const MessageCircle = (props) => <Icon paths={["M7.9 20A9 9 0 1 0 4 16.1L2 22z"]} {...props} />;
+    const ShieldCheck = (props) => <Icon paths={["M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z", "M9 12l2 2 4-4"]} {...props} />;
+    const UserCheck = (props) => <Icon paths={["M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2", "circle://9,7,4", "M16 11l2 2 4-4"]} {...props} />;
+    const ClipboardList = (props) => <Icon paths={["M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2", "rect://8,2,8,4,1", "M12 11h4", "M12 16h4", "M8 11h.01", "M8 16h.01"]} {...props} />;
+    const Megaphone = (props) => <Icon paths={["m3 11 18-5v12L3 13v-2z", "M11.6 16.8a3 3 0 1 1-5.8-1.6"]} {...props} />;
+    const FileText = (props) => <Icon paths={["M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", "M14 2v4a2 2 0 0 0 2 2h4", "M10 9H8", "M16 13H8", "M16 17H8"]} {...props} />;
+    const Radar = (props) => <Icon paths={["circle://12,12,1", "M13.4 10.6a2 2 0 1 1-2.8 2.8", "M6.8 15.7a5 5 0 1 1 10.4 0", "M4 17a9 9 0 1 1 16 0"]} {...props} />;
+    const Bug = (props) => <Icon paths={["M4 7h3a5 5 0 0 1 5-5 5 5 0 0 1 5 5h3", "M20 7h-3a5 5 0 0 1-5 5 5 5 0 0 1-5-5H4", "M4 13h3a5 5 0 0 0 5 5 5 5 0 0 0 5-5h3", "M20 13h-3a5 5 0 0 1-5 5 5 5 0 0 1-5-5H4", "M12 2v4", "M12 18v4"]} {...props} />;
+    const Gauge = (props) => <Icon paths={["M12 12l3.5 3.5", "M3 13a9 9 0 0 1 18 0Z"]} {...props} />;
+    const Activity = (props) => <Icon paths={["M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2"]} {...props} />;
+    const Inbox = (props) => <Icon paths={["M22 12h-6l-2 3h-4l-2-3H2", "M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"]} {...props} />;
+    const Mail = (props) => <Icon paths={["rect://2,4,20,16,2", "m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"]} {...props} />;
+    const TrendingUp = (props) => <Icon paths={["m22 7-8.5 8.5-5-5L2 17", "M16 7h6v6"]} {...props} />;
+    const FileBarChart2 = (props) => <Icon paths={["M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z", "M14 2v4a2 2 0 0 0 2 2h4", "M8 18v-1", "M12 18v-6", "M16 18v-3"]} {...props} />;
+    const ListChecks = (props) => <Icon paths={["M3 17h2l2 2 4-4", "M3 7h2l2 2 4-4", "M13 6h8", "M13 12h8", "M13 18h8"]} {...props} />;
+    const CalendarDays = (props) => <Icon paths={["M8 2v4", "M16 2v4", "rect://3,4,18,18,2", "M3 10h18", "M8 14h.01", "M12 14h.01", "M16 14h.01", "M8 18h.01", "M12 18h.01", "M16 18h.01"]} {...props} />;
+    const Copy = (props) => <Icon paths={["rect://9,9,13,13,2", "M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"]} {...props} />;
+    const X = (props) => <Icon paths={["M18 6 6 18", "m6 6 12 12"]} {...props} />;
+    const Send = (props) => <Icon paths={["m22 2-7 20-4-9-9-4Z", "M22 2 11 13"]} {...props} />;
+    const Menu = (props) => <Icon paths={["M4 6h16", "M4 12h16", "M4 18h16"]} {...props} />;
+
+    // Logo
+    function LogoEconeura() {
+      const svg = `<svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t a">
+        <title id="t">Logo de ECONEURA</title>
+        <desc id="a">Ecosistema de inteligencia colectiva: un árbol tecnológico en un círculo.</desc>
+        <g stroke="#004D49" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
+          <circle cx="50" cy="50" r="45"/>
+          <path d="M50 78 V44"/>
+          <path d="M50 78 H46 V86"/>
+          <path d="M50 78 H54 V86"/>
+          <path d="M50 44 L50 26"/>
+          <path d="M50 44 L35 33"/>
+          <path d="M50 44 L65 33"/>
+          <path d="M50 62 L27 58"/>
+          <path d="M50 62 L73 58"/>
+          <path d="M16 78 H44"/>
+          <path d="M56 78 H84"/>
+          <path d="M22 86 H44"/>
+          <path d="M56 86 H78"/>
+        </g>
+        <g fill="#004D49" stroke="none">
+          <circle cx="50" cy="18" r="5"/>
+          <circle cx="35" cy="33" r="4.5"/>
+          <circle cx="65" cy="33" r="4.5"/>
+          <circle cx="27" cy="58" r="4.5"/>
+          <circle cx="73" cy="58" r="4.5"/>
+        </g>
+      </svg>`;
+      return React.createElement('span', { 
+        className: "[&>svg]:w-6 [&>svg]:h-6", 
+        dangerouslySetInnerHTML: { __html: svg } 
+      });
+    }
+
+    const nowIso = () => new Date().toISOString();
+    
+    function correlationId() {
+      try {
+        const rnd = crypto?.getRandomValues(new Uint32Array(4));
+        if (rnd) return Array.from(rnd).map((n) => n.toString(16)).join("");
+        throw new Error('no crypto');
+      } catch {
+        const r = () => Math.floor(Math.random() * 1e9).toString(16);
+        return `${Date.now().toString(16)}${r()}${r()}`;
+      }
+    }
+
+    async function invokeAgent(agentId, route = 'azure', payload = {}) {
+      return { ok: true, simulated: true, output: `Simulado ${agentId}` };
+    }
+
+    const DeptIcon = {
+      CEO: Crown, IA: Brain, CSO: Target, CTO: Cpu, CISO: Shield,
+      COO: Workflow, CHRO: Users, MKT: LineChart, CFO: Wallet, CDO: Database,
+    };
+
+    const isComponent = (x) => !!x && (typeof x === 'function' || typeof x === 'object');
+    function getDeptIcon(id) {
+      const Icon = DeptIcon[id];
+      return isComponent(Icon) ? Icon : Crown;
+    }
+
+    function hexToRgb(hex) {
+      const h = hex.replace('#','');
+      const bigint = parseInt(h.length===3? h.split('').map(x=>x+x).join('') : h, 16);
+      const r=(bigint>>16)&255,g=(bigint>>8)&255,b=bigint&255;
+      return {r,g,b};
+    }
+    
+    function rgba(hex, a) {
+      const {r,g,b}=hexToRgb(hex);
+      return `rgba(${r}, ${g}, ${b}, ${a})`;
+    }
+
+    const DEFAULTS_HEX = {
+      CEO: '#2C3E50', IA: '#3498DB', CISO:'#7E8B89', CTO: '#6DADE9',
+      COO: '#B39B83', MKT: '#E67E22', CFO: '#D96D5C', CHRO:'#E76F51', CDO: '#F5E5DC',
+    };
+
+    const PALETTE = Object.fromEntries(Object.entries(DEFAULTS_HEX).map(([k,hex]) => {
+      return [k, {
+        accentText: 'text-slate-900', accentBg: 'bg-white', accentBorder: 'border-gray-200',
+        textHex: hex, bgCss: rgba(hex, 0.08), borderCss: rgba(hex, 0.35),
+      }];
+    }));
+
+    const DEFAULT_PALETTE = PALETTE.CEO;
+    function getPalette(id) { return PALETTE[id] || DEFAULT_PALETTE; }
+
+    // Iconos específicos por agente (mapeo completo)
+    function iconForAgent(agentId) {
+      const map = {
+        'a-ceo-01': CalendarDays, 'a-ceo-02': Megaphone, 'a-ceo-03': FileText, 'a-ceo-04': Gauge,
+        'a-ia-01': Activity, 'a-ia-02': FileBarChart2, 'a-ia-03': MessageCircle, 'a-ia-04': ListChecks,
+        'a-cso-01': Shield, 'a-cso-02': Radar, 'a-cso-03': TrendingUp, 'a-cso-04': Target,
+        'a-cto-01': Wallet, 'a-cto-02': ShieldCheck, 'a-cto-03': Gauge, 'a-cto-04': Bug,
+        'a-ciso-01': Shield, 'a-ciso-02': Inbox, 'a-ciso-03': Database, 'a-ciso-04': UserCheck,
+        'a-coo-01': Activity, 'a-coo-02': MessageCircle, 'a-coo-03': Gauge, 'a-coo-04': Workflow,
+        'a-chro-01': Users, 'a-chro-02': UserCheck, 'a-chro-03': CalendarDays, 'a-chro-04': Users,
+        'a-mkt-01': LineChart, 'a-mkt-02': TrendingUp, 'a-mkt-03': Target, 'a-mkt-04': FileText,
+        'a-cfo-01': Wallet, 'a-cfo-02': FileBarChart2, 'a-cfo-03': Mail, 'a-cfo-04': ClipboardList,
+        'a-cdo-01': Database, 'a-cdo-02': ShieldCheck, 'a-cdo-03': ClipboardList, 'a-cdo-04': Gauge,
+      };
+      return map[agentId] || Activity;
+    }
+
+    function TagIcon({ text }) {
+      const s = text.toLowerCase();
+      const Maybe = s.includes('riesgo') ? Shield : s.includes('consumo') ? Gauge : 
+                    s.includes('errores') ? Bug : s.includes('m&a') ? Target : 
+                    s.includes('tendencias') ? TrendingUp : FileText;
+      const I = isComponent(Maybe) ? Maybe : FileText;
+      return React.createElement(I, { className: "w-3 h-3" });
+    }
+
+    const DATA = [
+      { id:'CEO', name:'Ejecutivo (CEO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CEO', subtitle:'Consejero ejecutivo. Prioriza, resume y aprueba HITL.', tags:['Resumen del día','Top riesgos','OKR en alerta'] },
+        agents:[
+          { id:'a-ceo-01', title:'Agente: Agenda Consejo', desc:'Prepara orden del día y anexos para el consejo.' },
+          { id:'a-ceo-02', title:'Agente: Anuncio Semanal', desc:'Difunde comunicado semanal a toda la compañía.' },
+          { id:'a-ceo-03', title:'Agente: Resumen Ejecutivo Diario', desc:'Compila highlights diarios por área.' },
+          { id:'a-ceo-04', title:'Agente: Seguimiento OKR', desc:'Actualiza avance y riesgos de OKR.' },
+        ]},
+      { id:'IA', name:'Plataforma IA', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-IA', subtitle:'Director de plataforma IA. Gobierno técnico y costes.', tags:['Consumo por modelo','Errores por proveedor','Fallbacks últimos 7d'] },
+        agents:[
+          { id:'a-ia-01', title:'Agente: Chequeo de Salud y Failover', desc:'Healthcheck de workers y failover automático.', pills:['tokens: 60','€: 0,02','tiempo: 500 ms','llamadas: 1'] },
+          { id:'a-ia-02', title:'Agente: Cost Tracker', desc:'Mide gasto por modelo/servicio y alerta variaciones.', pills:['tokens: 60','€: 0,02','tiempo: 500 ms','llamadas: 1'] },
+          { id:'a-ia-03', title:'Agente: Revisión de Prompts', desc:'Versiona prompts y verifica calidad de respuestas.', pills:['tokens: 60','€: 0,02','tiempo: 500 ms','llamadas: 1'] },
+          { id:'a-ia-04', title:'Agente: Vigilancia de Cuotas', desc:'Controla límites/cuotas por proveedor.', pills:['tokens: 60','€: 0,02','tiempo: 500 ms','llamadas: 1'] },
+        ]},
+      { id:'CSO', name:'Estrategia (CSO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CSO', subtitle:'Asesor estratégico. Define foco y scorecards.', tags:['Riesgos emergentes','Tendencias del sector','Oportunidades M&A'] },
+        agents:[
+          { id:'a-cso-01', title:'Agente: Gestor de Riesgos', desc:'Mapa de riesgos y owners, con planes de mitigación.' },
+          { id:'a-cso-02', title:'Agente: Vigilancia Competitiva', desc:'Monitor de movimientos competitivos.' },
+          { id:'a-cso-03', title:'Agente: Radar de Tendencias', desc:'Detección de tendencias relevantes del sector.' },
+          { id:'a-cso-04', title:'Agente: Sincronización de M&A', desc:'Sincroniza oportunidades de M&A/partnerships.' },
+        ]},
+      { id:'CTO', name:'Tecnología (CTO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CTO', subtitle:'Lidera ingeniería y releases.', tags:['Incidentes críticos','SLO semanales','Optimización cloud'] },
+        agents:[
+          { id:'a-cto-01', title:'Agente: FinOps Cloud', desc:'Optimiza gasto cloud y reservas.' },
+          { id:'a-cto-02', title:'Agente: Seguridad CI/CD', desc:'Escaneos y gates de seguridad en CI/CD.' },
+          { id:'a-cto-03', title:'Agente: Observabilidad y SLO', desc:'SLIs/SLOs y alertas de observabilidad.' },
+          { id:'a-cto-04', title:'Agente: Gestión de Incidencias', desc:'Gestión y postmortems de incidencias.' },
+        ]},
+      { id:'CISO', name:'Seguridad (CISO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CISO', subtitle:'CISO virtual. Riesgos, compliance y respuesta.', tags:['Vulnerabilidades críticas','Phishing últimos 7d','Recertificaciones'] },
+        agents:[
+          { id:'a-ciso-01', title:'Agente: Vulnerabilidades y Parches', desc:'Ingesta CVEs y parche recomendado.' },
+          { id:'a-ciso-02', title:'Agente: Phishing Triage', desc:'Clasifica y enruta sospechas de phishing.' },
+          { id:'a-ciso-03', title:'Agente: Backup/Restore DR', desc:'Ejercicios de backup/restore y verificación.' },
+          { id:'a-ciso-04', title:'Agente: Recertificación de Accesos', desc:'Recertificación periódica de accesos.' },
+        ]},
+      { id:'COO', name:'Operaciones (COO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-COO', subtitle:'COO virtual. Flujo, SLA y excepciones.', tags:['Pedidos atrasados','SLA por canal','Cuellos de botella'] },
+        agents:[
+          { id:'a-coo-01', title:'Agente: Atrasos y Excepciones', desc:'Panel de atrasos y riesgos.' },
+          { id:'a-coo-02', title:'Agente: Centro NPS/CSAT', desc:'Hub de feedback NPS/CSAT.' },
+          { id:'a-coo-03', title:'Agente: Latido de SLA', desc:'Heartbeat de acuerdos de nivel de servicio.' },
+          { id:'a-coo-04', title:'Agente: Torre de Control', desc:'Vista torre: capacidad y cuellos de botella.' },
+        ]},
+      { id:'CHRO', name:'RRHH (CHRO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CHRO', subtitle:'CHRO virtual. Talento y clima.', tags:['Clima semanal','Onboardings','Vacantes críticas'] },
+        agents:[
+          { id:'a-chro-01', title:'Agente: Encuesta de Pulso', desc:'Encuesta breve de clima.' },
+          { id:'a-chro-02', title:'Agente: Offboarding Seguro', desc:'Offboarding con checklists y baja de accesos.' },
+          { id:'a-chro-03', title:'Agente: Onboarding Orquestado', desc:'Onboarding orquestado multi-equipo.' },
+          { id:'a-chro-04', title:'Agente: Pipeline de Contratación', desc:'Sincroniza pipeline de contratación.' },
+        ]},
+      { id:'MKT', name:'Marketing y Ventas (CMO/CRO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CMO/CRO', subtitle:'Go-to-market y revenue.', tags:['Embudo comercial','Churn y upsell','Campañas activas'] },
+        agents:[
+          { id:'a-mkt-01', title:'Agente: Embudo Comercial', desc:'Seguimiento de MQL-SQL-WON.' },
+          { id:'a-mkt-02', title:'Agente: Salud de Pipeline', desc:'Ritmo y envejecimiento de oportunidades.' },
+          { id:'a-mkt-03', title:'Agente: Calidad de Leads', desc:'Scoring y priorización.' },
+          { id:'a-mkt-04', title:'Agente: Resumen Post-Campaña', desc:'ROI y recomendaciones.' },
+        ]},
+      { id:'CFO', name:'Finanzas (CFO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CFO', subtitle:'Finanzas y control.', tags:['Cash runway','Variance vs budget','Cobros y pagos'] },
+        agents:[
+          { id:'a-cfo-01', title:'Agente: Tesorería', desc:'Flujos y proyecciones.' },
+          { id:'a-cfo-02', title:'Agente: Variance', desc:'Desviaciones P&L.' },
+          { id:'a-cfo-03', title:'Agente: Facturación', desc:'Ciclo de cobro y riesgo.' },
+          { id:'a-cfo-04', title:'Agente: Compras', desc:'Gasto y contratos.' },
+        ]},
+      { id:'CDO', name:'Datos (CDO)', chips:['HITL requiere aprobación','Datos UE'],
+        neura:{ title:'NEURA-CDO', subtitle:'Datos y calidad.', tags:['SLAs datos','Gobierno','Catálogo'] },
+        agents:[
+          { id:'a-cdo-01', title:'Agente: Linaje', desc:'Impacto de cambios.' },
+          { id:'a-cdo-02', title:'Agente: Calidad de Datos', desc:'Reglas y alertas.' },
+          { id:'a-cdo-03', title:'Agente: Catálogo', desc:'Altas/bajas y uso.' },
+          { id:'a-cdo-04', title:'Agente: Coste DWH', desc:'Optimización de queries.' },
+        ]},
+    ];
+
+    function AgentCard({ a, busy, onRun }) {
+      const AgentIcon = iconForAgent(a.id);
+      return (
+        <div className="bg-white rounded-xl border p-4 flex flex-col">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2">
+              {React.createElement(AgentIcon, { className: "w-4 h-4 mt-0.5 text-[#4b5563]" })}
+              <div>
+                <div className="font-semibold">{a.title}</div>
+                <div className="text-sm text-gray-600">{a.desc}</div>
+              </div>
+            </div>
+            <span className="text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border">Activo</span>
+          </div>
+          {a.pills && (
+            <div className="mt-2 text-[11px] text-gray-600 flex gap-2 flex-wrap">
+              {a.pills.map((p, i) => (
+                <span key={i} className="px-2 py-0.5 rounded-md bg-gray-100 border">{p}</span>
+              ))}
+            </div>
+          )}
+          <div className="mt-3">
+            <div className="h-2 rounded bg-gray-100 overflow-hidden">
+              <div className="h-2 bg-blue-400" style={{ width: '11%' }} />
+            </div>
+            <div className="mt-1 text-[11px] text-gray-500">11%</div>
+          </div>
+          <div className="mt-3 flex gap-2">
+            <button onClick={onRun} disabled={busy}
+              className={cx("h-9 px-3 rounded-md border text-sm",
+                busy ? "opacity-60 cursor-not-allowed" : "bg-gray-100 hover:bg-gray-200")}>
+              Ejecutar
+            </button>
+            <button className="h-9 px-3 rounded-md border text-sm hover:bg-gray-50">Pausar</button>
+          </div>
+        </div>
+      );
+    }
+
+    function OrgChart() {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {DATA.map((d) => {
+            const Icon = getDeptIcon(d.id);
+            const p = getPalette(d.id);
+            return (
+              <div key={d.id} className="bg-white border rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {React.createElement(Icon, { className: "w-4 h-4", style:{ color: p.textHex } })}
+                    <div className="font-semibold text-sm">{d.name}</div>
+                  </div>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-gray-100 border">4 agentes</span>
+                </div>
+                <ul className="text-sm text-gray-700 space-y-1">
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-400"/>
+                    <span className="font-medium">{d.neura.title}</span>
+                  </li>
+                  {d.agents.map(a => (
+                    <li key={a.id} className="flex items-start gap-2">
+                      <span className="mt-1 w-1.5 h-1.5 rounded-full bg-gray-400"/>
+                      <span>{a.title}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function EconeuraUI() {
+      const [activeDept, setActiveDept] = useState(DATA[0].id);
+      const [orgView, setOrgView] = useState(false);
+      const [busyId, setBusyId] = useState(null);
+      const [q, setQ] = useState("");
+      const [activity, setActivity] = useState([]);
+      const [chatOpen, setChatOpen] = useState(false);
+      const [chatMsgs, setChatMsgs] = useState([]);
+      const [voiceEnabled, setVoiceEnabled] = useState(false);
+      const [isRecording, setIsRecording] = useState(false);
+
+      const dept = useMemo(() => DATA.find(d => d.id === activeDept), [activeDept]);
+
+      const filteredAgents = useMemo(() => {
+        if (!q.trim()) return dept.agents;
+        const s = q.toLowerCase();
+        return dept.agents.filter(a => (a.title + ' ' + a.desc).toLowerCase().includes(s));
+      }, [dept, q]);
+
+      async function runAgent(a) {
+        try {
+          setBusyId(a.id);
+          const res = await invokeAgent(a.id, 'azure', { input: '' });
+          setActivity(v => [{
+            id: correlationId(),
+            ts: nowIso(),
+            agentId: a.id,
+            deptId: dept.id,
+            status: 'OK',
+            message: res?.output || 'OK'
+          }, ...v]);
+        } catch (e) {
+          setActivity(v => [{
+            id: correlationId(),
+            ts: nowIso(),
+            agentId: a.id,
+            deptId: dept.id,
+            status: 'ERROR',
+            message: String(e?.message||'Error')
+          }, ...v]);
+        } finally {
+          setBusyId(null);
+        }
+      }
+
+      function openChatWithErrorSamples() {
+        setChatOpen(true);
+        setChatMsgs([
+          { id: correlationId(), text: 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.' },
+          { id: correlationId(), text: 'Sistema funcionando en modo simulación. Configure GW_URL y GW_KEY para conectar con backend real.' },
+        ]);
+      }
+
+      function toggleVoice() {
+        setVoiceEnabled(!voiceEnabled);
+        if (isRecording) setIsRecording(false);
+      }
+
+      function startRecording() {
+        if (!voiceEnabled) return;
+        setIsRecording(true);
+      }
+
+      function stopRecording() {
+        setIsRecording(false);
+      }
+
+      function speakMessage(text) {
+        if (!voiceEnabled || !('speechSynthesis' in window)) return;
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        window.speechSynthesis.speak(utterance);
+      }
+
+      const ChipIconHITL = UserCheck;
+      const ChipIconEU = ShieldCheck;
+      const DeptIconComp = getDeptIcon(dept.id);
+      const pal = getPalette(dept.id);
+
+      return (
+        <div className="min-h-screen bg-[#f2f7fb] text-[#0f172a]">
+          <div className="h-14 border-b bg-white flex items-center px-4 justify-between">
+            <div className="flex items-center gap-2 font-semibold tracking-wide">
+              <LogoEconeura />
+              <span>ECONEURA Cockpit</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input value={q} onChange={(e)=>setQ(e.target.value)} 
+                placeholder="Buscar..." className="h-9 w-64 rounded-lg border px-3 text-sm" />
+              <button className="h-9 px-3 rounded-lg border text-sm">INICIAR SESIÓN</button>
+            </div>
+          </div>
+
+          <div className="flex">
+            <aside className="w-64 bg-white border-r p-2 space-y-1">
+              {DATA.map(d => {
+                const Ico = getDeptIcon(d.id);
+                const p = getPalette(d.id);
+                const active = activeDept === d.id && !orgView;
+                return (
+                  <button key={d.id} onClick={() => { setActiveDept(d.id); setOrgView(false); }}
+                    className={cx("w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2",
+                      active ? "font-semibold" : "hover:bg-gray-50")}
+                    style={active ? { backgroundColor: p.bgCss, color: p.textHex, borderColor: p.borderCss } : undefined}
+                  >
+                    {React.createElement(Ico, { className: "w-4 h-4", style:{ color: p.textHex } })}
+                    <span>{d.name}</span>
+                  </button>
+                );
+              })}
+              <div className="mt-2 border-t pt-2">
+                <button onClick={() => setOrgView(true)}
+                  className={cx("w-full text-left px-3 py-2 rounded-md text-sm hover:bg-gray-50 flex items-center gap-2",
+                    orgView ? "bg-sky-50 text-[#0f172a] font-semibold" : "")}>
+                  {React.createElement(ListChecks, { className: "w-4 h-4" })}
+                  <span>Organigrama</span>
+                </button>
+              </div>
+            </aside>
+
+            <main className="flex-1 p-4">
+              {!orgView ? (
+                <>
+                  <div className="bg-white rounded-xl border p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {React.createElement(DeptIconComp, { className: "w-5 h-5", style:{ color: pal.textHex } })}
+                        <div className="text-lg font-semibold">{dept.name}</div>
+                        <span className="text-xs px-2 py-1 rounded-full bg-gray-100 border">4 agentes</span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 border inline-flex items-center gap-1">
+                          {React.createElement(ChipIconHITL, { className: "w-3 h-3" })}HITL requiere aprobación
+                        </span>
+                        <span className="text-xs px-2 py-1 rounded-full bg-sky-50 text-sky-700 border inline-flex items-center gap-1">
+                          {React.createElement(ChipIconEU, { className: "w-3 h-3" })}Datos UE
+                        </span>
+                      </div>
+                      <span className="text-xs" style={{ color: pal.textHex }}>Ejecutivo</span>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="text-base font-semibold">{dept.neura.title}</div>
+                      <div className="text-sm text-gray-600">{dept.neura.subtitle}</div>
+                      <div className="mt-3 flex gap-2 flex-wrap">
+                        {dept.neura.tags.map((t, i) => (
+                          <button key={i} className="text-xs px-3 py-1 rounded-full border bg-gray-50 hover:bg-gray-100 inline-flex items-center gap-1">
+                            <TagIcon text={t} />{t}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <button className="h-9 px-3 rounded-md border bg-white inline-flex items-center gap-1" 
+                          onClick={openChatWithErrorSamples}>
+                          {React.createElement(MessageCircle, { className: "w-4 h-4" })}Abrir chat
+                        </button>
+                        <button className="h-9 px-3 rounded-md border inline-flex items-center gap-1">
+                          {React.createElement(ClipboardList, { className: "w-4 h-4" })}Ver registro
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-4 grid-cols-1 xl:grid-cols-3 lg:grid-cols-2">
+                    {filteredAgents.map((a) => (
+                      <AgentCard key={a.id} a={a} busy={busyId===a.id} onRun={() => runAgent(a)} />
+                    ))}
+                  </div>
+
+                  <div className="mt-4 bg-white rounded-xl border p-4">
+                    <div className="font-semibold mb-2">Actividad</div>
+                    {activity.length === 0 ? (
+                      <div className="text-sm text-gray-500">Sin actividad aún.</div>
+                    ) : (
+                      <ul className="space-y-1 text-sm">
+                        {activity.map(e => (
+                          <li key={e.id} className="flex items-center gap-2">
+                            <span className={cx('px-2 py-0.5 rounded border text-[11px]',
+                              e.status==='OK'?'bg-emerald-50 text-emerald-700':'bg-rose-50 text-rose-700')}>
+                              {e.status}
+                            </span>
+                            <span className="text-gray-500">{new Date(e.ts).toLocaleString()}</span>
+                            <span className="font-medium">{e.agentId}</span>
+                            <span className="text-gray-500 truncate">{e.message}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <OrgChart />
+              )}
+
+              <footer className="text-[11px] text-gray-500 mt-6 pb-8">
+                GDPR & AI Act · datos en la UE · TLS 1.2+ y AES-256 · auditoría HITL
+              </footer>
+            </main>
+          </div>
+
+          {chatOpen && (
+            <div className="fixed inset-0 bg-black/30 z-40" onClick={()=>setChatOpen(false)}>
+              <aside className="absolute right-0 top-0 h-full w-[380px] bg-white border-l flex flex-col" 
+                onClick={e=>e.stopPropagation()}>
+                <div className="p-4 border-b">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-semibold">{dept.name} — Chat</div>
+                    <button onClick={toggleVoice}
+                      className={cx("h-8 w-8 rounded-lg border flex items-center justify-center",
+                        voiceEnabled ? "bg-emerald-50 text-emerald-700 border-emerald-300" : "bg-gray-50")}
+                      title={voiceEnabled ? 'Desactivar voz' : 'Activar voz'}>
+                      {React.createElement(Volume2, { className: voiceEnabled ? "w-4 h-4" : "w-4 h-4 opacity-40" })}
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    <button className="text-xs px-3 py-1 rounded-full border bg-gray-50">Resumen del día</button>
+                  </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                  <div className="space-y-3">
+                    {chatMsgs.map(m => (
+                      <div key={m.id} className="bg-gray-50 border rounded-lg p-3 text-sm flex items-start justify-between gap-2">
+                        <span className="flex-1">{m.text}</span>
+                        {voiceEnabled && (
+                          <button onClick={() => speakMessage(m.text)}
+                            className="flex-shrink-0 w-6 h-6 rounded hover:bg-gray-200 flex items-center justify-center"
+                            title="Reproducir con voz">
+                            {React.createElement(Volume2, { className: "w-3.5 h-3.5" })}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-4 border-t">
+                  <div className="flex gap-2">
+                    <input className="flex-1 border rounded-lg h-9 px-3 text-sm" placeholder="Escribe tu mensaje..." />
+                    {voiceEnabled && (
+                      <button onMouseDown={startRecording} onMouseUp={stopRecording} onMouseLeave={stopRecording}
+                        className={cx("h-9 w-9 rounded-lg border flex items-center justify-center",
+                          isRecording ? "bg-red-50 border-red-300 text-red-600" : "hover:bg-gray-50")}
+                        title="Mantén presionado para grabar">
+                        {React.createElement(isRecording ? MicOff : Mic, { className: "w-4 h-4" })}
+                      </button>
+                    )}
+                    <button className="h-9 px-3 rounded-lg border hover:bg-gray-50">Enviar</button>
+                  </div>
+                  {voiceEnabled && (
+                    <div className="mt-2 text-[10px] text-gray-500 text-center">
+                      {isRecording ? '🔴 Grabando...' : 'Mantén presionado el micrófono para hablar'}
+                    </div>
+                  )}
+                </div>
+              </aside>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<EconeuraUI />, document.getElementById('root'));
+  </script>
+</body>
+</html>

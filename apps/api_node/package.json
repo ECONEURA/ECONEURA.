@@ -1,0 +1,19 @@
+{
+  "name": "@econeura/api-node",
+  "version": "1.0.0",
+  "description": "ECONEURA Backend API Server - Node.js proxy to Make.com webhooks",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node --test"
+  },
+  "keywords": ["econeura", "api", "proxy", "make.com"],
+  "author": "ECONEURA Team",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
