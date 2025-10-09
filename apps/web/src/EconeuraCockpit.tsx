@@ -25,6 +25,7 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import invokeAgent from "./utils/invokeAgent";
 
 export interface Department {
   id: string;
@@ -199,13 +200,68 @@ export default function EconeuraCockpit() {
 
   const handleSendMessage = useCallback(async () => {
     if (!inputValue.trim() || !selectedAgent) return;
-    const userMessage: Message = { id: `msg-${Date.now()}`, role: "user", content: inputValue.trim(), timestamp: new Date() };
+    
+    // 1. Agregar mensaje del usuario
+    const userMessage: Message = { 
+      id: `msg-${Date.now()}`, 
+      role: "user", 
+      content: inputValue.trim(), 
+      timestamp: new Date() 
+    };
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue("");
-    setTimeout(() => {
-      const assistantMessage: Message = { id: `msg-${Date.now()}-response`, role: "assistant", content: `[${selectedAgent.name}] Procesando tu solicitud: "${userMessage.content}"...`, timestamp: new Date(), agentId: selectedAgent.id, agentName: selectedAgent.name };
-      setMessages((prev) => [...prev, assistantMessage]);
-    }, 1000);
+    
+    const userInput = inputValue.trim();
+    setInputValue(""); // Limpiar input inmediatamente
+    
+    // 2. Agregar mensaje "pensando..." temporal
+    const thinkingId = `msg-${Date.now()}-thinking`;
+    const thinkingMessage: Message = {
+      id: thinkingId,
+      role: "assistant",
+      content: "💭 Pensando...",
+      timestamp: new Date(),
+      agentId: selectedAgent.id,
+      agentName: selectedAgent.name
+    };
+    setMessages((prev) => [...prev, thinkingMessage]);
+    
+    try {
+      // 3. Llamar a invokeAgent() con OpenAI
+      const response = await invokeAgent(
+        selectedAgent.id,
+        'azure',
+        { input: userInput }
+      );
+      
+      // 4. Reemplazar mensaje "pensando..." con respuesta real
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === thinkingId
+            ? {
+                ...msg,
+                content: response.ok 
+                  ? response.output 
+                  : `❌ Error: ${response.output}`,
+                timestamp: new Date()
+              }
+            : msg
+        )
+      );
+      
+    } catch (error: any) {
+      // 5. Manejar error
+      setMessages((prev) => 
+        prev.map((msg) => 
+          msg.id === thinkingId
+            ? {
+                ...msg,
+                content: `❌ Error de conexión: ${error.message}`,
+                timestamp: new Date()
+              }
+            : msg
+        )
+      );
+    }
   }, [inputValue, selectedAgent]);
 
   const toggleVoiceInput = useCallback(() => setIsListening((prev) => !prev), []);
