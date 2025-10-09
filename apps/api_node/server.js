@@ -7,7 +7,12 @@
 
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Obtener __dirname en ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Configuración
 const HOST = process.env.HOST || '127.0.0.1';
@@ -15,7 +20,9 @@ const PORT = parseInt(process.env.PORT || '8080', 10);
 const MAKE_FORWARD = process.env.MAKE_FORWARD === '1';
 const MAKE_TOKEN = process.env.MAKE_TOKEN || '';
 const MAKE_TIMEOUT = parseInt(process.env.MAKE_TIMEOUT || '4000', 10);
-const ROUTING_PATH = join(process.cwd(), 'packages/configs/agent-routing.json');
+
+// Path correcto a agent-routing.json desde apps/api_node
+const ROUTING_PATH = join(__dirname, '../../packages/configs/agent-routing.json');
 
 // IDs de agentes válidos
 const VALID_AGENT_IDS = Array.from({ length: 11 }, (_, i) => `neura-${i + 1}`);
