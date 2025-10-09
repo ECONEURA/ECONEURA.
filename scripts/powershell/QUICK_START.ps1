@@ -11,7 +11,8 @@ Write-Host "`n📋 Verificando dependencias..." -ForegroundColor Yellow
 try {
     $pnpmVersion = pnpm --version
     Write-Host "✅ pnpm v$pnpmVersion instalado" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ pnpm no encontrado. Instala con: npm install -g pnpm" -ForegroundColor Red
     exit 1
 }
@@ -20,7 +21,8 @@ try {
 try {
     $pythonVersion = python --version
     Write-Host "✅ $pythonVersion instalado" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Python no encontrado. Instala Python 3.11+" -ForegroundColor Red
     exit 1
 }
@@ -29,7 +31,8 @@ try {
 try {
     $nodeVersion = node --version
     Write-Host "✅ Node $nodeVersion instalado" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Node.js no encontrado" -ForegroundColor Red
     exit 1
 }
@@ -71,7 +74,8 @@ try {
     docker info 2>&1 | Out-Null
     $dockerRunning = $true
     Write-Host "✅ Docker está corriendo" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "⚠️ Docker no disponible - BD no se iniciará" -ForegroundColor Yellow
     Write-Host "   Instala Docker Desktop: https://www.docker.com/products/docker-desktop" -ForegroundColor Gray
 }
@@ -95,7 +99,8 @@ if ($dockerRunning) {
                 Write-Host "✅ PostgreSQL listo" -ForegroundColor Green
                 break
             }
-        } catch {}
+        }
+        catch {}
         
         $retries++
         Start-Sleep -Seconds 1
@@ -111,7 +116,8 @@ if ($dockerRunning) {
     $tables = docker exec econeura-postgres psql -U econeura -d econeura_dev -t -c "\dt" 2>&1
     if ($tables -match "users") {
         Write-Host "✅ Esquema de BD inicializado correctamente" -ForegroundColor Green
-    } else {
+    }
+    else {
         Write-Host "⚠️ Tablas no encontradas - puede necesitar inicialización manual" -ForegroundColor Yellow
     }
 }

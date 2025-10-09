@@ -2,13 +2,13 @@ name: Build Web App
 
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "apps/web/**"
       - "packages/**"
       - ".github/workflows/build-web.yml"
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
     paths:
       - "apps/web/**"
       - "packages/**"
@@ -22,7 +22,7 @@ jobs:
     name: Build Web Application
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4

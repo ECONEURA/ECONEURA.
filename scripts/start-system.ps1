@@ -13,7 +13,8 @@ Write-Host "✓ Verificando Node.js..." -ForegroundColor Green
 try {
     $nodeVersion = node --version
     Write-Host "  Node.js: $nodeVersion" -ForegroundColor Gray
-} catch {
+}
+catch {
     Write-Host "✗ Error: Node.js no encontrado. Instala Node.js 18+ desde nodejs.org" -ForegroundColor Red
     exit 1
 }
@@ -23,7 +24,8 @@ Write-Host "✓ Verificando pnpm..." -ForegroundColor Green
 try {
     $pnpmVersion = pnpm --version
     Write-Host "  pnpm: v$pnpmVersion" -ForegroundColor Gray
-} catch {
+}
+catch {
     Write-Host "✗ Error: pnpm no encontrado. Instala con: npm install -g pnpm" -ForegroundColor Red
     exit 1
 }
@@ -53,7 +55,8 @@ function Stop-ProcessOnPort {
                 Write-Host "  Liberado puerto $Port" -ForegroundColor Gray
             }
         }
-    } catch {
+    }
+    catch {
         # Puerto ya libre
     }
 }
@@ -81,7 +84,8 @@ try {
     $response = Invoke-WebRequest -Uri "http://127.0.0.1:8081/api/health" -UseBasicParsing -TimeoutSec 5
     $data = $response.Content | ConvertFrom-Json
     Write-Host "   ✓ Backend OK - Modo: $($data.mode) - Agentes: $($data.agents)" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "   ✗ Backend no responde" -ForegroundColor Red
     Stop-Job -Job $backendJob
     Remove-Job -Job $backendJob
@@ -131,9 +135,10 @@ try {
             break
         }
     }
-} finally {
+}
+finally {
     Write-Host "`n👋 Deteniendo servicios..." -ForegroundColor Yellow
-    Stop-Job -Job $backendJob,$frontendJob -ErrorAction SilentlyContinue
-    Remove-Job -Job $backendJob,$frontendJob -ErrorAction SilentlyContinue
+    Stop-Job -Job $backendJob, $frontendJob -ErrorAction SilentlyContinue
+    Remove-Job -Job $backendJob, $frontendJob -ErrorAction SilentlyContinue
     Write-Host "✅ Sistema detenido`n" -ForegroundColor Green
 }

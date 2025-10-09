@@ -3,12 +3,12 @@ name: Deploy to Azure (Conditional)
 on:
   workflow_run:
     workflows: ["Build Web App", "Validate Python API"]
-    branches: [ "main" ]
-    types: [ completed ]
+    branches: ["main"]
+    types: [completed]
   workflow_dispatch:
     inputs:
       target:
-        description: 'What to deploy'
+        description: "What to deploy"
         required: true
         type: choice
         options:
@@ -50,7 +50,7 @@ jobs:
     environment:
       name: production-web
       url: https://econeura-web-dev.azurewebsites.net
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -122,7 +122,7 @@ jobs:
             console.log(`Server running at http://localhost:${port}/`);
           });
           EOF
-          
+
           # Create package.json for Azure
           cat > package.json << 'EOF'
           {
@@ -136,7 +136,7 @@ jobs:
             }
           }
           EOF
-          
+
           echo "✅ Deployment package created"
 
       - name: Zip artifact
@@ -162,7 +162,7 @@ jobs:
     environment:
       name: production-api
       url: https://econeura-api-dev.azurewebsites.net
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -188,7 +188,7 @@ jobs:
           python server.py
           EOF
           chmod +x startup.sh
-          
+
           echo "✅ Deployment package ready"
 
       - name: Zip artifact

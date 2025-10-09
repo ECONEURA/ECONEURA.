@@ -1,9 +1,9 @@
-name: 'Close Stale Issues'
+name: "Close Stale Issues"
 
 on:
   schedule:
     # Ejecutar cada día a las 00:00 UTC
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
   workflow_dispatch: # Permitir ejecución manual
 
 permissions:
@@ -19,75 +19,75 @@ jobs:
           # Issues configuration
           days-before-issue-stale: 60
           days-before-issue-close: 14
-          stale-issue-label: 'stale'
-          exempt-issue-labels: 'pinned,security,critical,roadmap'
+          stale-issue-label: "stale"
+          exempt-issue-labels: "pinned,security,critical,roadmap"
           stale-issue-message: |
             👋 Este issue lleva **60 días sin actividad** y ha sido marcado como `stale`.
-            
+
             **¿Sigue siendo relevante?**
             - Si el problema persiste, por favor comenta y proporcionaremos ayuda
             - Si ya está resuelto, puedes cerrar el issue
             - Si no hay actividad en **14 días**, se cerrará automáticamente
-            
+
             Para evitar que se cierre:
             - Comenta en este issue explicando el estado actual
             - Añade la etiqueta `pinned` si es importante mantenerlo abierto
-            
+
             Gracias por tu contribución al proyecto ECONEURA 🚀
-          
+
           close-issue-message: |
             🔒 Este issue ha sido cerrado automáticamente por inactividad (74 días sin respuesta).
-            
+
             **¿Necesitas reabrirlo?**
             Si el problema persiste o necesitas ayuda:
             1. Comenta en este issue con información actualizada
             2. Un mantenedor revisará y reabrirá si es necesario
-            
+
             O abre un nuevo issue con:
             - Referencia a este issue: #${issue.number}
             - Información actualizada sobre el problema
             - Pasos de reproducción actuales
-            
+
             ¡Gracias por usar ECONEURA! 🙏
-          
+
           # Pull Requests configuration
           days-before-pr-stale: 30
           days-before-pr-close: 7
-          stale-pr-label: 'stale'
-          exempt-pr-labels: 'pinned,security,work-in-progress'
+          stale-pr-label: "stale"
+          exempt-pr-labels: "pinned,security,work-in-progress"
           stale-pr-message: |
             👋 Este PR lleva **30 días sin actividad** y ha sido marcado como `stale`.
-            
+
             **¿Necesitas ayuda para completarlo?**
             - Si necesitas ayuda de los mantenedores, menciona @ECONEURA
             - Si hay blockers, describe qué impide avanzar
             - Si no hay actividad en **7 días**, se cerrará automáticamente
-            
+
             Para evitar que se cierre:
             - Actualiza el PR con nuevos commits
             - Comenta el estado actual del desarrollo
             - Añade la etiqueta `work-in-progress` si estás trabajando activamente
-            
+
             Gracias por tu contribución 🚀
-          
+
           close-pr-message: |
             🔒 Este PR ha sido cerrado automáticamente por inactividad (37 días sin respuesta).
-            
+
             **¿Quieres retomar el trabajo?**
             1. Comenta en este PR explicando tu plan
             2. Un mantenedor revisará y podrá reabrir
             3. O abre un nuevo PR con referencia a este: #${pr.number}
-            
+
             **Si alguien más quiere continuarlo:**
             - Puedes hacer fork desde el branch de este PR
             - Abre un nuevo PR mencionando el original
-            
+
             ¡Gracias por tu tiempo! 🙏
-          
+
           # General configuration
           operations-per-run: 100
           remove-stale-when-updated: true
           ascending: true # Procesar issues más antiguos primero
-          
+
           # Debug (cambiar a true solo para testing)
           debug-only: false

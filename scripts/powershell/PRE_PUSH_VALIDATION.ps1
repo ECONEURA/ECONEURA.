@@ -28,7 +28,8 @@ Write-Host "`n📝 2/6 Ejecutando lint..." -ForegroundColor Cyan
 try {
     pnpm -w lint 2>&1 | Out-Null
     Write-Host "✅ Lint passed" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Lint failed" -ForegroundColor Red
     $failures += "lint"
 }
@@ -38,7 +39,8 @@ Write-Host "`n🔍 3/6 Ejecutando typecheck..." -ForegroundColor Cyan
 try {
     pnpm -w typecheck 2>&1 | Out-Null
     Write-Host "✅ Typecheck passed" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Typecheck failed" -ForegroundColor Red
     $failures += "typecheck"
 }
@@ -48,7 +50,8 @@ Write-Host "`n🏗️  4/6 Ejecutando build..." -ForegroundColor Cyan
 try {
     pnpm -w build 2>&1 | Out-Null
     Write-Host "✅ Build passed" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Build failed" -ForegroundColor Red
     $failures += "build"
 }
@@ -59,7 +62,8 @@ try {
     # Tests rápidos sin coverage
     pnpm -w test --run --reporter=verbose 2>&1 | Select-Object -First 20 | Out-Null
     Write-Host "✅ Tests passed" -ForegroundColor Green
-} catch {
+}
+catch {
     Write-Host "❌ Tests failed" -ForegroundColor Red
     $failures += "tests"
 }
@@ -77,7 +81,8 @@ foreach ($script in $requiredScripts) {
 if ($missingScripts.Count -gt 0) {
     Write-Host "❌ Faltan scripts: $($missingScripts -join ', ')" -ForegroundColor Red
     $failures += "package.json"
-} else {
+}
+else {
     Write-Host "✅ Package.json OK" -ForegroundColor Green
 }
 
@@ -91,7 +96,8 @@ if ($failures.Count -eq 0) {
     Write-Host "⏱️  Tiempo: $($duration.TotalSeconds.ToString('F1'))s" -ForegroundColor Gray
     Write-Host "`n🚀 Listo para push!" -ForegroundColor Green
     exit 0
-} else {
+}
+else {
     Write-Host "`n❌ VALIDACIONES FALLIDAS: $($failures.Count)" -ForegroundColor Red
     Write-Host "Fallos: $($failures -join ', ')" -ForegroundColor Red
     Write-Host "`n⚠️  NO recomendado hacer push con estos errores" -ForegroundColor Yellow
@@ -99,7 +105,8 @@ if ($failures.Count -eq 0) {
     if ($response -eq "y") {
         Write-Host "⚠️  Pusheando con errores..." -ForegroundColor Yellow
         exit 0
-    } else {
+    }
+    else {
         exit 1
     }
 }

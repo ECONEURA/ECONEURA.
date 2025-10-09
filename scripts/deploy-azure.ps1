@@ -9,14 +9,14 @@ Write-Host "📦 Step 1/4: Building frontend..." -ForegroundColor Yellow
 Set-Location "apps/web"
 pnpm install
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to install dependencies" -ForegroundColor Red
-    exit 1
+  Write-Host "❌ Failed to install dependencies" -ForegroundColor Red
+  exit 1
 }
 
 pnpm build
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to build frontend" -ForegroundColor Red
-    exit 1
+  Write-Host "❌ Failed to build frontend" -ForegroundColor Red
+  exit 1
 }
 Write-Host "✅ Frontend build successful`n" -ForegroundColor Green
 
@@ -25,8 +25,8 @@ Write-Host "📦 Step 2/4: Installing API dependencies..." -ForegroundColor Yell
 Set-Location "../../api"
 npm install
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Failed to install API dependencies" -ForegroundColor Red
-    exit 1
+  Write-Host "❌ Failed to install API dependencies" -ForegroundColor Red
+  exit 1
 }
 Write-Host "✅ API dependencies installed`n" -ForegroundColor Green
 
@@ -36,16 +36,16 @@ Set-Location ".."
 
 # Create SWA CLI config
 $swaConfig = @{
-    "\$schema" = "https://aka.ms/azure/static-web-apps-cli/schema"
-    configurations = @{
-        econeura = @{
-            appLocation = "apps/web"
-            apiLocation = "api"
-            outputLocation = "dist"
-            appBuildCommand = "pnpm build"
-            apiBuildCommand = "npm install"
-        }
+  "\$schema"     = "https://aka.ms/azure/static-web-apps-cli/schema"
+  configurations = @{
+    econeura = @{
+      appLocation     = "apps/web"
+      apiLocation     = "api"
+      outputLocation  = "dist"
+      appBuildCommand = "pnpm build"
+      apiBuildCommand = "npm install"
     }
+  }
 } | ConvertTo-Json -Depth 10
 
 $swaConfig | Out-File -FilePath "swa-cli.config.json" -Encoding utf8

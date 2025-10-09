@@ -4,199 +4,199 @@
 name: CI Full
 
 on:
-  push:
-    branches: [main, develop, copilot/**]
-  pull_request:
-    branches: [main, develop]
+    push:
+        branches: [main, develop, copilot/**]
+    pull_request:
+        branches: [main, develop]
 
 jobs:
-  lint-and-typecheck:
-    name: Lint & TypeCheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Lint
-        run: pnpm -w lint
-        
-      - name: TypeCheck
-        run: pnpm -w typecheck
+    lint-and-typecheck:
+        name: Lint & TypeCheck
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
 
-  test-frontend:
-    name: Test Frontend
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Run tests with coverage
-        run: pnpm -w test:coverage
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
 
-  test-backend-services:
-    name: Test Backend Services
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: 
-          - analytics
-          - cdo
-          - cfo
-          - chro
-          - ciso
-          - cmo
-          - cto
-          - legal
-          - reception
-          - research
-          - support
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          
-      - name: Install dependencies for ${{ matrix.service }}
-        run: |
-          cd services/neuras/${{ matrix.service }}
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
-          
-      - name: Run tests for ${{ matrix.service }}
-        run: |
-          cd services/neuras/${{ matrix.service }}
-          python -m pytest test_app.py -v || echo "Tests not found, skipping"
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
 
-  test-auth-service:
-    name: Test Auth Service
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          
-      - name: Install dependencies
-        run: |
-          cd services/auth
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
-          
-      - name: Run tests
-        run: |
-          cd services/auth
-          python -m pytest test_app.py -v || echo "Tests not found, skipping"
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
 
-  build:
-    name: Build All Packages
-    runs-on: ubuntu-latest
-    needs: [lint-and-typecheck]
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Build packages
-        run: pnpm -w build
+            - name: Lint
+              run: pnpm -w lint
 
-  docker-build:
-    name: Docker Build Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-        
-      - name: Build Docker images
-        run: |
-          docker compose -f docker-compose.dev.enhanced.yml build
+            - name: TypeCheck
+              run: pnpm -w typecheck
 
-  integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [build]
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: econeura
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: econeura_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-        
-      - name: Run integration tests
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: econeura_test
-          DB_USER: econeura
-          DB_PASSWORD: test_password
-        run: |
-          echo "Integration tests would run here"
-          # pnpm -w test:integration
+    test-frontend:
+        name: Test Frontend
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run tests with coverage
+              run: pnpm -w test:coverage
+
+    test-backend-services:
+        name: Test Backend Services
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                service:
+                    - analytics
+                    - cdo
+                    - cfo
+                    - chro
+                    - ciso
+                    - cmo
+                    - cto
+                    - legal
+                    - reception
+                    - research
+                    - support
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies for ${{ matrix.service }}
+              run: |
+                  cd services/neuras/${{ matrix.service }}
+                  pip install -r requirements.txt
+                  pip install pytest pytest-asyncio httpx
+
+            - name: Run tests for ${{ matrix.service }}
+              run: |
+                  cd services/neuras/${{ matrix.service }}
+                  python -m pytest test_app.py -v || echo "Tests not found, skipping"
+
+    test-auth-service:
+        name: Test Auth Service
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Install dependencies
+              run: |
+                  cd services/auth
+                  pip install -r requirements.txt
+                  pip install pytest pytest-asyncio httpx
+
+            - name: Run tests
+              run: |
+                  cd services/auth
+                  python -m pytest test_app.py -v || echo "Tests not found, skipping"
+
+    build:
+        name: Build All Packages
+        runs-on: ubuntu-latest
+        needs: [lint-and-typecheck]
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build packages
+              run: pnpm -w build
+
+    docker-build:
+        name: Docker Build Check
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build Docker images
+              run: |
+                  docker compose -f docker-compose.dev.enhanced.yml build
+
+    integration-tests:
+        name: Integration Tests
+        runs-on: ubuntu-latest
+        needs: [build]
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: econeura
+                    POSTGRES_PASSWORD: test_password
+                    POSTGRES_DB: econeura_test
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                ports:
+                    - 5432:5432
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.11"
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v2
+              with:
+                  version: 8
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Run integration tests
+              env:
+                  DB_HOST: localhost
+                  DB_PORT: 5432
+                  DB_NAME: econeura_test
+                  DB_USER: econeura
+                  DB_PASSWORD: test_password
+              run: |
+                  echo "Integration tests would run here"
+                  # pnpm -w test:integration
