@@ -1,1061 +1,349 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from "react";
 import {
   Crown,
   Cpu,
   Shield,
-  Workflow,
-  Users,
-  Target,
-  Brain,
-  LineChart,
-  Wallet,
-  Database,
-  ShieldCheck,
-  UserCheck,
-  MessageCircle,
-  ClipboardList,
-  Megaphone,
-  FileText,
-  Radar,
-  Bug,
-  Gauge,
-  Activity,
-  Inbox,
-  Mail,
   TrendingUp,
-  FileBarChart2,
-  ListChecks,
-  CalendarDays,
-  Copy,
-} from 'lucide-react';
+  Users,
+  DollarSign,
+  Scale,
+  Briefcase,
+  HeadphonesIcon,
+  FlaskConical,
+  Heart,
+  Code,
+  Zap,
+  MessageSquare,
+  Mic,
+  MicOff,
+  Volume2,
+  VolumeX,
+  Send,
+  Trash2,
+  Download,
+  Settings,
+  Menu,
+  X,
+} from "lucide-react";
 
-/**
- * ECONEURA — Cockpit Completo 1:1
- * - Sin cambios de textos, layout ni tipografías visibles.
- * - Logo SVG exacto inline (dangerouslySetInnerHTML).
- * - Paleta mediterránea por departamento, contraste AA.
- * - NO_DEPLOY: el cliente nunca guarda secretos; telemetría = NOOP.
- * - MSAL/AAD: eventos (auth:login/refresh). Token en window.__ECONEURA_BEARER.
- * - Gateway: Authorization: Bearer <token>, X-Route, X-Correlation-Id obligatorio.
- * - Fallback seguro: simula ejecución si no hay GW_URL o token (no rompe la UI).
- */
-
-// Utilidades básicas
-const cx = (...cls: (string | boolean | undefined)[]) => cls.filter(Boolean).join(' ');
-
-// Utilidad para verificar si un valor es un componente React válido
-function isReactComponent(x: any): x is React.ElementType {
-  return !!x && (typeof x === 'function' || typeof x === 'object');
-}
-
-// Tipos
-export type Agent = { id: string; title: string; desc: string; pills?: string[] };
 export interface Department {
   id: string;
   name: string;
-  chips: string[];
-  neura: { title: string; subtitle: string; tags: string[] };
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+  bgGradient: string;
   agents: Agent[];
 }
 
-type ActivityEvent = {
+export interface Agent {
   id: string;
-  ts: string;
-  agentId: string;
-  deptId: string;
-  status: 'OK' | 'ERROR';
-  message: string;
-};
-
-// Logo oficial (inline, exacto)
-function LogoEconeura() {
-  // Logo ECONEURA exacto (círculo + árbol electrónico + nodos dorados)
-  const svg = `<svg width="200" height="200" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="t a">
-  <title id="t">Logo de ECONEURA</title>
-  <desc id="a">Árbol tecnológico simétrico dentro de un círculo. Trazo verde petróleo y nodos dorados.</desc>
-  <g stroke="#004D49" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none">
-    <!-- Anillo exterior -->
-    <circle cx="50" cy="50" r="45"/>
-
-    <!-- Tronco central -->
-    <path d="M50 82 V30"/>
-
-    <!-- Ramas superiores -->
-    <path d="M50 42 L34 30"/>
-    <path d="M50 42 L66 30"/>
-
-    <!-- Ramas medias -->
-    <path d="M50 58 L28 56"/>
-    <path d="M50 58 L72 56"/>
-
-    <!-- Raíces inferiores -->
-    <path d="M50 82 H44 V90"/>
-    <path d="M50 82 H56 V90"/>
-  </g>
-
-  <!-- Nodos dorados -->
-  <g fill="#F5B400" stroke="none">
-    <circle cx="50" cy="24" r="5"/>
-    <circle cx="34" cy="30" r="4.5"/>
-    <circle cx="66" cy="30" r="4.5"/>
-    <circle cx="28" cy="56" r="4.5"/>
-    <circle cx="72" cy="56" r="4.5"/>
-    <circle cx="20" cy="82" r="4.5"/>
-    <circle cx="80" cy="82" r="4.5"/>
-  </g>
-</svg>`;
-  return <span className='[&>svg]:w-6 [&>svg]:h-6' dangerouslySetInnerHTML={{ __html: svg }} />;
+  name: string;
+  role: string;
+  expertise: string[];
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
 }
 
-// Lectura de variables en cliente sin romper
-const readVar = (winKey: string, viteKey: string, nodeKey: string): string | undefined => {
-  const fromWin = (typeof window !== 'undefined' && (window as any)[winKey]) as string | undefined;
-  const fromVite = (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.[viteKey]) as
-    | string
-    | undefined;
-  const fromNode = (typeof process !== 'undefined' && (process as any)?.env?.[nodeKey]) as
-    | string
-    | undefined;
-  return fromWin || fromVite || fromNode || undefined;
-};
-
-const env = {
-  GW_URL: readVar('__ECONEURA_GW_URL', 'VITE_NEURA_GW_URL', 'NEURA_GW_URL'),
-  LA_ID: readVar('__LA_WORKSPACE_ID', 'VITE_LA_WORKSPACE_ID', 'LA_WORKSPACE_ID'),
-  LA_KEY: readVar('__LA_SHARED_KEY', 'VITE_LA_SHARED_KEY', 'LA_SHARED_KEY'),
-};
-
-const nowIso = () => new Date().toISOString();
-
-function correlationId() {
-  try {
-    const rnd = (globalThis as any).crypto?.getRandomValues(new Uint32Array(4)) as
-      | Uint32Array
-      | undefined;
-    if (rnd)
-      return Array.from(rnd)
-        .map((n: number) => n.toString(16))
-        .join('');
-    throw new Error('no crypto');
-  } catch {
-    const r = () => Math.floor(Math.random() * 1e9).toString(16);
-    return `${Date.now().toString(16)}${r()}${r()}`;
-  }
+export interface Message {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+  agentId?: string;
+  agentName?: string;
 }
 
-async function invokeAgent(agentId: string, payload: any = {}) {
-  const token = (globalThis as any).__ECONEURA_BEARER as string | undefined;
-  const base = (env.GW_URL || '/api').replace(/\/$/, '');
-  // Map common test agent ids to deterministic API routes expected by tests
-  let url = `${base}/api/invoke/${agentId}`;
-  if (agentId.includes('okr')) url = '/api/agents/okr';
-  else if (agentId.includes('flow')) url = '/api/agents/flow';
-  else if (agentId.includes('int') || agentId.includes('integration'))
-    url = '/api/agents/integration';
-  if (!token) return { ok: true, simulated: true, output: `Simulado ${agentId}` };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ input: payload?.input ?? '' }),
-  }).catch(e => ({ ok: false, error: e }) as any);
-
-  const ok = typeof (res as any).ok === 'boolean' ? (res as any).ok : true;
-  if (!ok) return { ok: false, output: `Simulado ${agentId}` } as any;
-  const body = await (res as any).json().catch(() => ({}));
-  const output = body?.output ?? body?.result ?? JSON.stringify(body ?? {});
-  return { ok: true, output } as any;
-}
-
-// Telemetría cliente → NOOP por seguridad
-async function logActivity(_row: Record<string, any>) {
-  return;
-}
-
-// Iconos por departamento
-const DeptIcon: Record<string, React.ElementType> = {
-  CEO: Crown,
-  IA: Brain,
-  CSO: Target,
-  CTO: Cpu,
-  CISO: Shield,
-  COO: Workflow,
-  CHRO: Users,
-  MKT: LineChart,
-  CFO: Wallet,
-  CDO: Database,
-};
-
-function getDeptIcon(id: string): React.ElementType {
-  const Icon = (DeptIcon as any)[id];
-  return isReactComponent(Icon) ? Icon : Crown;
-}
-
-// Colores
-function hexToRgb(hex: string) {
-  const h = hex.replace('#', '');
-  const bigint = parseInt(
-    h.length === 3
-      ? h
-          .split('')
-          .map(x => x + x)
-          .join('')
-      : h,
-    16
-  );
-  const r = (bigint >> 16) & 255,
-    g = (bigint >> 8) & 255,
-    b = bigint & 255;
-  return { r, g, b };
-}
-function rgba(hex: string, a: number) {
-  const { r, g, b } = hexToRgb(hex);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
-}
-
-const DEFAULTS_HEX: Record<string, string> = (typeof window !== 'undefined' &&
-  (window as any).__ECONEURA_COLORS) || {
-  // Paleta mediterránea exacta por departamento
-  CEO: '#2C3E50',
-  IA: '#3498DB',
-  CISO: '#7E8B89',
-  CTO: '#6DADE9',
-  COO: '#B39B83',
-  MKT: '#E67E22',
-  CFO: '#D96D5C',
-  CHRO: '#E76F51',
-  CDO: '#F5E5DC',
-  CSO: '#3D5A80',
-};
-
-type Pal = {
-  accentText: string;
-  accentBg: string;
-  accentBorder: string;
-  textHex: string;
-  bgCss: string;
-  borderCss: string;
-};
-const PALETTE: Record<string, Pal> = Object.fromEntries(
-  Object.entries(DEFAULTS_HEX).map(([k, hex]) => {
-    const textHex = hex;
-    return [
-      k,
-      {
-        accentText: 'text-slate-900',
-        accentBg: 'bg-white',
-        accentBorder: 'border-gray-200',
-        textHex,
-        bgCss: rgba(hex, 0.08),
-        borderCss: rgba(hex, 0.35),
-      },
-    ];
-  })
-) as Record<string, Pal>;
-const DEFAULT_PALETTE = PALETTE.CEO;
-function getPalette(id: string) {
-  return PALETTE[id] || DEFAULT_PALETTE;
-}
-
-// Datos exactos (NEURA por departamento)
-const DATA: Department[] = [
+const DEPARTMENTS: Department[] = [
   {
-    id: 'CEO',
-    name: 'Ejecutivo (CEO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CEO',
-      subtitle: 'Consejero ejecutivo. Prioriza, resume y aprueba HITL.',
-      tags: ['Resumen del día', 'Top riesgos', 'OKR en alerta'],
-    },
+    id: "executive",
+    name: "Ejecutivo",
+    icon: Crown,
+    color: "from-purple-600 to-pink-600",
+    bgGradient: "bg-gradient-to-br from-purple-50 to-pink-50",
     agents: [
-      // Agents used by e2e tests (IDs chosen so invokeAgent maps them to expected endpoints)
-      { id: 'a-okr-01', title: 'OKR Agent', desc: 'Gestión de OKRs' },
-      { id: 'a-flow-01', title: 'Flow Agent', desc: 'Gestión de flujos' },
-      { id: 'a-integration-01', title: 'Integration Agent', desc: 'Integraciones externas' },
-      {
-        id: 'a-ceo-01',
-        title: 'Agente: Agenda Consejo',
-        desc: 'Prepara orden del día y anexos para el consejo.',
-      },
+      { id: "ceo-vision", name: "CEO Vision", role: "Estrategia Corporativa", expertise: ["Visión Estratégica", "Gobierno Corporativo", "Transformación Digital"], icon: Crown, color: "text-purple-600" },
+      { id: "ceo-ops", name: "CEO Operations", role: "Operaciones Ejecutivas", expertise: ["Eficiencia Operacional", "Gestión de Crisis", "Liderazgo"], icon: Zap, color: "text-pink-600" },
+      { id: "board-advisor", name: "Board Advisor", role: "Asesor de Junta", expertise: ["Gobierno Corporativo", "Cumplimiento", "Estrategia"], icon: Shield, color: "text-indigo-600" },
+      { id: "change-mgmt", name: "Change Manager", role: "Gestión del Cambio", expertise: ["Transformación Organizacional", "Cultura", "Innovación"], icon: TrendingUp, color: "text-purple-500" },
     ],
   },
   {
-    id: 'IA',
-    name: 'Plataforma IA',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-IA',
-      subtitle: 'Director de plataforma IA. Gobierno técnico y costes.',
-      tags: ['Consumo por modelo', 'Errores por proveedor', 'Fallbacks últimos 7d'],
-    },
+    id: "technology",
+    name: "Tecnología",
+    icon: Cpu,
+    color: "from-blue-600 to-cyan-600",
+    bgGradient: "bg-gradient-to-br from-blue-50 to-cyan-50",
     agents: [
-      {
-        id: 'a-ia-01',
-        title: 'Agente: Chequeo de Salud y Failover',
-        desc: 'Healthcheck de workers y failover automático.',
-        pills: ['tokens: 60', '€: 0,02', 'tiempo: 500 ms', 'llamadas: 1'],
-      },
-      {
-        id: 'a-ia-02',
-        title: 'Agente: Cost Tracker',
-        desc: 'Mide gasto por modelo/servicio y alerta variaciones.',
-        pills: ['tokens: 60', '€: 0,02', 'tiempo: 500 ms', 'llamadas: 1'],
-      },
-      {
-        id: 'a-ia-03',
-        title: 'Agente: Revisión de Prompts',
-        desc: 'Versiona prompts y verifica calidad de respuestas.',
-        pills: ['tokens: 60', '€: 0,02', 'tiempo: 500 ms', 'llamadas: 1'],
-      },
-      {
-        id: 'a-ia-04',
-        title: 'Agente: Vigilancia de Cuotas',
-        desc: 'Controla límites/cuotas por proveedor.',
-        pills: ['tokens: 60', '€: 0,02', 'tiempo: 500 ms', 'llamadas: 1'],
-      },
+      { id: "cto-arch", name: "CTO Architect", role: "Arquitectura Tecnológica", expertise: ["Cloud", "Microservicios", "Seguridad"], icon: Cpu, color: "text-blue-600" },
+      { id: "devops-lead", name: "DevOps Lead", role: "Ingeniería DevOps", expertise: ["CI/CD", "Kubernetes", "Automatización"], icon: Code, color: "text-cyan-600" },
+      { id: "ai-specialist", name: "AI Specialist", role: "Inteligencia Artificial", expertise: ["Machine Learning", "NLP", "Computer Vision"], icon: Zap, color: "text-blue-500" },
+      { id: "data-engineer", name: "Data Engineer", role: "Ingeniería de Datos", expertise: ["Big Data", "ETL", "Data Lakes"], icon: TrendingUp, color: "text-cyan-500" },
     ],
   },
   {
-    id: 'CSO',
-    name: 'Estrategia (CSO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CSO',
-      subtitle: 'Asesor estratégico. Define foco y scorecards.',
-      tags: ['Riesgos emergentes', 'Tendencias del sector', 'Oportunidades M&A'],
-    },
+    id: "security",
+    name: "Seguridad",
+    icon: Shield,
+    color: "from-red-600 to-orange-600",
+    bgGradient: "bg-gradient-to-br from-red-50 to-orange-50",
     agents: [
-      {
-        id: 'a-cso-01',
-        title: 'Agente: Gestor de Riesgos',
-        desc: 'Mapa de riesgos y owners, con planes de mitigación.',
-      },
-      {
-        id: 'a-cso-02',
-        title: 'Agente: Vigilancia Competitiva',
-        desc: 'Monitor de movimientos competitivos.',
-      },
-      {
-        id: 'a-cso-03',
-        title: 'Agente: Radar de Tendencias',
-        desc: 'Detección de tendencias relevantes del sector.',
-      },
-      {
-        id: 'a-cso-04',
-        title: 'Agente: Sincronización de M&A',
-        desc: 'Sincroniza oportunidades de M&A/partnerships.',
-      },
+      { id: "ciso-strategy", name: "CISO Strategy", role: "Estrategia de Seguridad", expertise: ["Ciberseguridad", "Riesgo", "Cumplimiento"], icon: Shield, color: "text-red-600" },
+      { id: "sec-ops", name: "SecOps Analyst", role: "Operaciones de Seguridad", expertise: ["SOC", "Threat Hunting", "Incident Response"], icon: Zap, color: "text-orange-600" },
+      { id: "compliance-officer", name: "Compliance Officer", role: "Oficial de Cumplimiento", expertise: ["GDPR", "ISO 27001", "Auditoría"], icon: Scale, color: "text-red-500" },
+      { id: "pen-tester", name: "Penetration Tester", role: "Pruebas de Penetración", expertise: ["Ethical Hacking", "Vulnerability Assessment", "Red Team"], icon: Code, color: "text-orange-500" },
     ],
   },
   {
-    id: 'CTO',
-    name: 'Tecnología (CTO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CTO',
-      subtitle: 'Lidera ingeniería y releases.',
-      tags: ['Incidentes críticos', 'SLO semanales', 'Optimización cloud'],
-    },
+    id: "finance",
+    name: "Finanzas",
+    icon: DollarSign,
+    color: "from-green-600 to-emerald-600",
+    bgGradient: "bg-gradient-to-br from-green-50 to-emerald-50",
     agents: [
-      { id: 'a-cto-01', title: 'Agente: FinOps Cloud', desc: 'Optimiza gasto cloud y reservas.' },
-      {
-        id: 'a-cto-02',
-        title: 'Agente: Seguridad CI/CD',
-        desc: 'Escaneos y gates de seguridad en CI/CD.',
-      },
-      {
-        id: 'a-cto-03',
-        title: 'Agente: Observabilidad y SLO',
-        desc: 'SLIs/SLOs y alertas de observabilidad.',
-      },
-      {
-        id: 'a-cto-04',
-        title: 'Agente: Gestión de Incidencias',
-        desc: 'Gestión y postmortems de incidencias.',
-      },
+      { id: "cfo-planning", name: "CFO Planning", role: "Planificación Financiera", expertise: ["FP&A", "Presupuestos", "Forecasting"], icon: DollarSign, color: "text-green-600" },
+      { id: "controller", name: "Financial Controller", role: "Control Financiero", expertise: ["Contabilidad", "Reportes", "Auditoría"], icon: TrendingUp, color: "text-emerald-600" },
+      { id: "tax-advisor", name: "Tax Advisor", role: "Asesor Fiscal", expertise: ["Planificación Fiscal", "Cumplimiento Tributario", "Optimización"], icon: Scale, color: "text-green-500" },
+      { id: "treasury-mgr", name: "Treasury Manager", role: "Gestión de Tesorería", expertise: ["Cash Management", "Risk Management", "Inversiones"], icon: DollarSign, color: "text-emerald-500" },
     ],
   },
   {
-    id: 'CISO',
-    name: 'Seguridad (CISO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CISO',
-      subtitle: 'CISO virtual. Riesgos, compliance y respuesta.',
-      tags: ['Vulnerabilidades críticas', 'Phishing últimos 7d', 'Recertificaciones'],
-    },
+    id: "marketing",
+    name: "Marketing",
+    icon: TrendingUp,
+    color: "from-yellow-600 to-amber-600",
+    bgGradient: "bg-gradient-to-br from-yellow-50 to-amber-50",
     agents: [
-      {
-        id: 'a-ciso-01',
-        title: 'Agente: Vulnerabilidades y Parches',
-        desc: 'Ingesta CVEs y parche recomendado.',
-      },
-      {
-        id: 'a-ciso-02',
-        title: 'Agente: Phishing Triage',
-        desc: 'Clasifica y enruta sospechas de phishing.',
-      },
-      {
-        id: 'a-ciso-03',
-        title: 'Agente: Backup/Restore DR',
-        desc: 'Ejercicios de backup/restore y verificación.',
-      },
-      {
-        id: 'a-ciso-04',
-        title: 'Agente: Recertificación de Accesos',
-        desc: 'Recertificación periódica de accesos.',
-      },
+      { id: "cmo-strategy", name: "CMO Strategy", role: "Estrategia de Marketing", expertise: ["Branding", "Go-to-Market", "Marketing Digital"], icon: TrendingUp, color: "text-yellow-600" },
+      { id: "growth-hacker", name: "Growth Hacker", role: "Crecimiento", expertise: ["Growth Hacking", "SEO/SEM", "Analytics"], icon: Zap, color: "text-amber-600" },
+      { id: "content-lead", name: "Content Lead", role: "Líder de Contenido", expertise: ["Content Strategy", "Copywriting", "Storytelling"], icon: MessageSquare, color: "text-yellow-500" },
+      { id: "social-media", name: "Social Media Manager", role: "Redes Sociales", expertise: ["Community Management", "Influencer Marketing", "Social Ads"], icon: Users, color: "text-amber-500" },
     ],
   },
   {
-    id: 'COO',
-    name: 'Operaciones (COO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-COO',
-      subtitle: 'COO virtual. Flujo, SLA y excepciones.',
-      tags: ['Pedidos atrasados', 'SLA por canal', 'Cuellos de botella'],
-    },
+    id: "hr",
+    name: "Recursos Humanos",
+    icon: Users,
+    color: "from-indigo-600 to-violet-600",
+    bgGradient: "bg-gradient-to-br from-indigo-50 to-violet-50",
     agents: [
-      {
-        id: 'a-coo-01',
-        title: 'Agente: Atrasos y Excepciones',
-        desc: 'Panel de atrasos y riesgos.',
-      },
-      { id: 'a-coo-02', title: 'Agente: Centro NPS/CSAT', desc: 'Hub de feedback NPS/CSAT.' },
-      {
-        id: 'a-coo-03',
-        title: 'Agente: Latido de SLA',
-        desc: 'Heartbeat de acuerdos de nivel de servicio.',
-      },
-      {
-        id: 'a-coo-04',
-        title: 'Agente: Torre de Control',
-        desc: 'Vista torre: capacidad y cuellos de botella.',
-      },
+      { id: "chro-culture", name: "CHRO Culture", role: "Cultura Organizacional", expertise: ["Cultura", "Employee Experience", "Engagement"], icon: Users, color: "text-indigo-600" },
+      { id: "talent-acq", name: "Talent Acquisition", role: "Adquisición de Talento", expertise: ["Recruiting", "Employer Branding", "Onboarding"], icon: Heart, color: "text-violet-600" },
+      { id: "learning-dev", name: "Learning & Development", role: "Desarrollo y Aprendizaje", expertise: ["Training", "Career Development", "Coaching"], icon: TrendingUp, color: "text-indigo-500" },
+      { id: "comp-benefits", name: "Compensation & Benefits", role: "Compensación y Beneficios", expertise: ["Payroll", "Benefits", "Performance Management"], icon: DollarSign, color: "text-violet-500" },
     ],
   },
   {
-    id: 'CHRO',
-    name: 'RRHH (CHRO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CHRO',
-      subtitle: 'CHRO virtual. Talento y clima.',
-      tags: ['Clima semanal', 'Onboardings', 'Vacantes críticas'],
-    },
+    id: "legal",
+    name: "Legal",
+    icon: Scale,
+    color: "from-slate-600 to-gray-600",
+    bgGradient: "bg-gradient-to-br from-slate-50 to-gray-50",
     agents: [
-      { id: 'a-chro-01', title: 'Agente: Encuesta de Pulso', desc: 'Encuesta breve de clima.' },
-      {
-        id: 'a-chro-02',
-        title: 'Agente: Offboarding Seguro',
-        desc: 'Offboarding con checklists y baja de accesos.',
-      },
-      {
-        id: 'a-chro-03',
-        title: 'Agente: Onboarding Orquestado',
-        desc: 'Onboarding orquestado multi-equipo.',
-      },
-      {
-        id: 'a-chro-04',
-        title: 'Agente: Pipeline de Contratación',
-        desc: 'Sincroniza pipeline de contratación.',
-      },
+      { id: "general-counsel", name: "General Counsel", role: "Asesor Legal Principal", expertise: ["Derecho Corporativo", "M&A", "Contratos"], icon: Scale, color: "text-slate-600" },
+      { id: "compliance-legal", name: "Compliance Legal", role: "Cumplimiento Legal", expertise: ["Regulaciones", "Políticas", "Auditoría Legal"], icon: Shield, color: "text-gray-600" },
+      { id: "ip-specialist", name: "IP Specialist", role: "Propiedad Intelectual", expertise: ["Patentes", "Marcas", "Copyright"], icon: Code, color: "text-slate-500" },
+      { id: "labor-law", name: "Labor Law Expert", role: "Derecho Laboral", expertise: ["Contratos Laborales", "Negociación", "Litigios"], icon: Users, color: "text-gray-500" },
     ],
   },
   {
-    id: 'MKT',
-    name: 'Marketing y Ventas (CMO/CRO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CMO/CRO',
-      subtitle: 'Go-to-market y revenue.',
-      tags: ['Embudo comercial', 'Churn y upsell', 'Campañas activas'],
-    },
+    id: "operations",
+    name: "Operaciones",
+    icon: Briefcase,
+    color: "from-teal-600 to-cyan-600",
+    bgGradient: "bg-gradient-to-br from-teal-50 to-cyan-50",
     agents: [
-      { id: 'a-mkt-01', title: 'Agente: Embudo Comercial', desc: 'Seguimiento de MQL-SQL-WON.' },
-      {
-        id: 'a-mkt-02',
-        title: 'Agente: Salud de Pipeline',
-        desc: 'Ritmo y envejecimiento de oportunidades.',
-      },
-      { id: 'a-mkt-03', title: 'Agente: Calidad de Leads', desc: 'Scoring y priorización.' },
-      { id: 'a-mkt-04', title: 'Agente: Resumen Post-Campaña', desc: 'ROI y recomendaciones.' },
+      { id: "coo-excellence", name: "COO Excellence", role: "Excelencia Operacional", expertise: ["Procesos", "Lean", "Six Sigma"], icon: Briefcase, color: "text-teal-600" },
+      { id: "supply-chain", name: "Supply Chain Manager", role: "Cadena de Suministro", expertise: ["Logística", "Inventario", "Proveedores"], icon: TrendingUp, color: "text-cyan-600" },
+      { id: "quality-mgr", name: "Quality Manager", role: "Gestión de Calidad", expertise: ["ISO 9001", "Quality Assurance", "Mejora Continua"], icon: Shield, color: "text-teal-500" },
+      { id: "project-mgr", name: "Project Manager", role: "Gestión de Proyectos", expertise: ["PMI", "Agile", "Stakeholder Management"], icon: Zap, color: "text-cyan-500" },
     ],
   },
   {
-    id: 'CFO',
-    name: 'Finanzas (CFO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CFO',
-      subtitle: 'Finanzas y control.',
-      tags: ['Cash runway', 'Variance vs budget', 'Cobros y pagos'],
-    },
+    id: "customer",
+    name: "Atención al Cliente",
+    icon: HeadphonesIcon,
+    color: "from-rose-600 to-pink-600",
+    bgGradient: "bg-gradient-to-br from-rose-50 to-pink-50",
     agents: [
-      { id: 'a-cfo-01', title: 'Agente: Tesorería', desc: 'Flujos y proyecciones.' },
-      { id: 'a-cfo-02', title: 'Agente: Variance', desc: 'Desviaciones P&L.' },
-      { id: 'a-cfo-03', title: 'Agente: Facturación', desc: 'Ciclo de cobro y riesgo.' },
-      { id: 'a-cfo-04', title: 'Agente: Compras', desc: 'Gasto y contratos.' },
+      { id: "cx-director", name: "CX Director", role: "Director de Experiencia del Cliente", expertise: ["Customer Experience", "NPS", "Journey Mapping"], icon: HeadphonesIcon, color: "text-rose-600" },
+      { id: "support-lead", name: "Support Lead", role: "Líder de Soporte", expertise: ["Customer Support", "Ticket Management", "Escalation"], icon: MessageSquare, color: "text-pink-600" },
+      { id: "success-mgr", name: "Customer Success Manager", role: "Gestión de Éxito del Cliente", expertise: ["Onboarding", "Retention", "Upselling"], icon: Heart, color: "text-rose-500" },
+      { id: "community-mgr", name: "Community Manager", role: "Gestión de Comunidad", expertise: ["Community Building", "Engagement", "Advocacy"], icon: Users, color: "text-pink-500" },
     ],
   },
   {
-    id: 'CDO',
-    name: 'Datos (CDO)',
-    chips: ['HITL requiere aprobación', 'Datos UE'],
-    neura: {
-      title: 'NEURA-CDO',
-      subtitle: 'Datos y calidad.',
-      tags: ['SLAs datos', 'Gobierno', 'Catálogo'],
-    },
+    id: "research",
+    name: "Investigación",
+    icon: FlaskConical,
+    color: "from-fuchsia-600 to-purple-600",
+    bgGradient: "bg-gradient-to-br from-fuchsia-50 to-purple-50",
     agents: [
-      { id: 'a-cdo-01', title: 'Agente: Linaje', desc: 'Impacto de cambios.' },
-      { id: 'a-cdo-02', title: 'Agente: Calidad de Datos', desc: 'Reglas y alertas.' },
-      { id: 'a-cdo-03', title: 'Agente: Catálogo', desc: 'Altas/bajas y uso.' },
-      { id: 'a-cdo-04', title: 'Agente: Coste DWH', desc: 'Optimización de queries.' },
+      { id: "research-director", name: "Research Director", role: "Director de Investigación", expertise: ["R&D", "Innovation", "Market Research"], icon: FlaskConical, color: "text-fuchsia-600" },
+      { id: "data-scientist", name: "Data Scientist", role: "Científico de Datos", expertise: ["Analytics", "ML", "Statistical Modeling"], icon: TrendingUp, color: "text-purple-600" },
+      { id: "ux-researcher", name: "UX Researcher", role: "Investigador UX", expertise: ["User Research", "Usability Testing", "Design Thinking"], icon: Users, color: "text-fuchsia-500" },
+      { id: "market-analyst", name: "Market Analyst", role: "Analista de Mercado", expertise: ["Competitive Analysis", "Trends", "Forecasting"], icon: TrendingUp, color: "text-purple-500" },
     ],
   },
 ];
 
-// Icono según agente
-function iconForAgent(title: string): React.ElementType {
-  const t = title.toLowerCase();
-  let Icon: any = ClipboardList;
-  if (t.includes('agenda')) Icon = CalendarDays;
-  else if (t.includes('anuncio') || t.includes('comunicado')) Icon = Megaphone;
-  else if (t.includes('resumen') || t.includes('registro')) Icon = FileText;
-  else if (t.includes('okr') || t.includes('score')) Icon = Gauge;
-  else if (t.includes('salud') || t.includes('health')) Icon = Activity;
-  else if (t.includes('cost') || t.includes('gasto')) Icon = FileBarChart2;
-  else if (t.includes('prompts')) Icon = MessageCircle;
-  else if (t.includes('cuotas')) Icon = ListChecks;
-  else if (t.includes('incidenc')) Icon = Bug;
-  else if (t.includes('observabilidad') || t.includes('slo')) Icon = Radar;
-  else if (t.includes('phishing')) Icon = Inbox;
-  else if (t.includes('email')) Icon = Mail;
-  else if (t.includes('tendencias')) Icon = TrendingUp;
-  return isReactComponent(Icon) ? Icon : ClipboardList;
-}
-
-function TagIcon({ text }: { text: string }) {
-  const s = text.toLowerCase();
-  const Maybe: any = s.includes('riesgo')
-    ? Shield
-    : s.includes('consumo')
-      ? Gauge
-      : s.includes('errores')
-        ? Bug
-        : s.includes('m&a')
-          ? Target
-          : s.includes('tendencias')
-            ? TrendingUp
-            : FileText;
-  const I = isReactComponent(Maybe) ? Maybe : FileText;
-  return <I className='w-3 h-3' />;
-}
-
 export default function EconeuraCockpit() {
-  const [authenticated, setAuthenticated] = React.useState<boolean>(
-    !!(globalThis as any).__ECONEURA_BEARER
-  );
-  React.useEffect(() => {
-    const onLogin = () => setAuthenticated(true);
-    const onLogout = () => setAuthenticated(false);
-    window.addEventListener('auth:login', onLogin);
-    window.addEventListener('auth:logout', onLogout);
-    return () => {
-      window.removeEventListener('auth:login', onLogin);
-      window.removeEventListener('auth:logout', onLogout);
-    };
-  }, []);
-  const [departments, setDepartments] = useState<Department[]>(DATA);
-  const [activeDept, setActiveDept] = useState(DATA[0].id);
-  const [orgView, setOrgView] = useState(false);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [q, setQ] = useState('');
-  const [activity, setActivity] = useState<ActivityEvent[]>([]);
-  const [chatOpen, setChatOpen] = useState(false);
-  const [chatMsgs, setChatMsgs] = useState<{ id: string; text: string }[]>([]);
-  const dept = useMemo(() => departments.find(d => d.id === activeDept)!, [departments, activeDept]);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
-  const filteredAgents = useMemo(() => {
-    if (!q.trim()) return dept.agents;
-    const s = q.toLowerCase();
-    return dept.agents.filter(a => (a.title + ' ' + a.desc).toLowerCase().includes(s));
-  }, [dept, q]);
+  const totalAgents = useMemo(() => DEPARTMENTS.reduce((sum, dept) => sum + dept.agents.length, 0), []);
 
-  async function runAgent(a: Agent) {
-    const shortName = (id: string) => {
-      const s = id.toLowerCase();
-      if (s.includes('okr')) return 'okr';
-      if (s.includes('flow')) return 'flow';
-      if (s.includes('int') || s.includes('integration')) return 'integration';
-      const m = s.match(/[a-z]+/);
-      return m ? m[0] : id;
-    };
+  const handleSendMessage = useCallback(async () => {
+    if (!inputValue.trim() || !selectedAgent) return;
+    const userMessage: Message = { id: `msg-${Date.now()}`, role: "user", content: inputValue.trim(), timestamp: new Date() };
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
+    setTimeout(() => {
+      const assistantMessage: Message = { id: `msg-${Date.now()}-response`, role: "assistant", content: `[${selectedAgent.name}] Procesando tu solicitud: "${userMessage.content}"...`, timestamp: new Date(), agentId: selectedAgent.id, agentName: selectedAgent.name };
+      setMessages((prev) => [...prev, assistantMessage]);
+    }, 1000);
+  }, [inputValue, selectedAgent]);
 
-    const short = shortName(a.id);
-    try {
-      setBusyId(a.id);
-      const res = await invokeAgent(a.id, { input: '' });
-      const ok = res?.ok !== false;
-      const message = ok
-        ? `Agent ${short}: ${res?.output ?? 'OK'}`
-        : `Error invoking ${short}: ${res?.output ?? 'Unknown error'}`;
-      setActivity(v => [
-        {
-          id: correlationId(),
-          ts: nowIso(),
-          agentId: a.id,
-          deptId: dept.id,
-          status: ok ? 'OK' : 'ERROR',
-          message,
-        },
-        ...v,
-      ]);
-      logActivity({ AgentId: a.id, DeptId: dept.id, Status: ok ? 'OK' : 'ERROR' });
-    } catch (e: any) {
-      const message = `Error invoking ${short}: ${String(e?.message || 'Error')}`;
-      setActivity(v => [
-        {
-          id: correlationId(),
-          ts: nowIso(),
-          agentId: a.id,
-          deptId: dept.id,
-          status: 'ERROR',
-          message,
-        },
-        ...v,
-      ]);
-      logActivity({ AgentId: a.id, DeptId: dept.id, Status: 'ERROR' });
-    } finally {
-      setBusyId(null);
-    }
-  }
-
-  function openChatWithErrorSamples() {
-    setChatOpen(true);
-    setChatMsgs([
-      {
-        id: correlationId(),
-        text: 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.',
-      },
-      {
-        id: correlationId(),
-        text: 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.',
-      },
-    ]);
-  }
-
-  function cloneAgent(agent: Agent) {
-    const newAgent: Agent = {
-      ...agent,
-      id: `${agent.id}-clone-${Date.now()}`,
-      title: `${agent.title} (Copia)`,
-    };
-    
-    setDepartments(prevDepts => 
-      prevDepts.map(d => 
-        d.id === activeDept
-          ? { ...d, agents: [...d.agents, newAgent] }
-          : d
-      )
-    );
-    
-    setActivity(v => [
-      {
-        id: correlationId(),
-        ts: nowIso(),
-        agentId: newAgent.id,
-        deptId: dept.id,
-        status: 'OK',
-        message: `Agente clonado: ${agent.title}`,
-      },
-      ...v,
-    ]);
-  }
-
-
-  const ChipIconHITL = UserCheck;
-  const ChipIconEU = ShieldCheck;
-  const DeptIconComp = getDeptIcon(dept.id);
-  const pal = getPalette(dept.id);
+  const toggleVoiceInput = useCallback(() => setIsListening((prev) => !prev), []);
+  const toggleSpeech = useCallback(() => setIsSpeaking((prev) => !prev), []);
+  const clearConversation = useCallback(() => setMessages([]), []);
+  const exportConversation = useCallback(() => {
+    const data = JSON.stringify(messages, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `conversation-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [messages]);
 
   return (
-    <div className='min-h-screen bg-[#f2f7fb] text-[#0f172a]'>
-      {/* Top bar */}
-      <div className='h-14 border-b bg-white flex items-center px-4 justify-between'>
-        <div className='flex items-center gap-2 font-semibold tracking-wide'>
-          <LogoEconeura />
-          <span>ECONEURA Cockpit</span>
-        </div>
-        <div className='flex items-center gap-2'>
-          {authenticated ? (
-            <input
-              value={q}
-              onChange={e => setQ(e.target.value)}
-              placeholder='Buscar...'
-              className='h-9 w-64 rounded-lg border px-3 text-sm'
-            />
-          ) : null}
-          <button
-            onClick={() => {
-              (window as any).__ECONEURA_BEARER = 'mock-token-123';
-              window.dispatchEvent(new CustomEvent('auth:login'));
-            }}
-            className='h-9 px-3 rounded-lg border text-sm'
-          >
-            INICIAR SESIÓN
-          </button>
+    <div className="flex h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+      <div className={`${isSidebarOpen ? "w-80" : "w-0"} transition-all duration-300 overflow-hidden bg-white border-r border-slate-200 shadow-xl`}>
+        <div className="p-6">
+          <div className="flex items-center justify-between mb-8">
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">ECONEURA</h1>
+            <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"><X className="w-5 h-5" /></button>
+          </div>
+          <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+            <p className="text-sm text-slate-600 mb-2">Agentes Disponibles</p>
+            <p className="text-3xl font-bold text-slate-800">{totalAgents}</p>
+          </div>
+          <div className="space-y-3 max-h-[calc(100vh-300px)] overflow-y-auto">
+            {DEPARTMENTS.map((dept) => (
+              <button key={dept.id} onClick={() => { setSelectedDepartment(dept); setSelectedAgent(null); }} className={`w-full text-left p-4 rounded-xl transition-all ${selectedDepartment?.id === dept.id ? `bg-gradient-to-r ${dept.color} text-white shadow-lg scale-105` : "bg-slate-50 hover:bg-slate-100 text-slate-700"}`}>
+                <div className="flex items-center gap-3">
+                  <dept.icon className="w-5 h-5" />
+                  <div className="flex-1">
+                    <p className="font-semibold">{dept.name}</p>
+                    <p className={`text-xs ${selectedDepartment?.id === dept.id ? "text-white/80" : "text-slate-500"}`}>{dept.agents.length} agentes</p>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
-
-      <div className='flex'>
-        {/* Sidebar departamentos */}
-        <aside className='w-64 bg-white border-r p-2 space-y-1'>
-          {departments.map(d => {
-            const Ico = getDeptIcon(d.id);
-            const p = getPalette(d.id);
-            const active = activeDept === d.id && !orgView;
-            return (
-              <button
-                key={d.id}
-                onClick={() => {
-                  setActiveDept(d.id);
-                  setOrgView(false);
-                }}
-                className={cx(
-                  'w-full text-left px-3 py-2 rounded-md text-sm flex items-center gap-2',
-                  active ? 'font-semibold' : 'hover:bg-gray-50'
-                )}
-                style={
-                  active
-                    ? { backgroundColor: p.bgCss, color: p.textHex, borderColor: p.borderCss }
-                    : undefined
-                }
-              >
-                {React.createElement(Ico, { className: 'w-4 h-4', style: { color: p.textHex } })}
-                <span>{d.name}</span>
-              </button>
-            );
-          })}
-          <div className='mt-2 border-t pt-2'>
-            <button
-              onClick={() => setOrgView(true)}
-              className={cx(
-                'w-full text-left px-3 py-2 rounded-md text-sm hover:bg-gray-50 flex items-center gap-2',
-                orgView ? 'bg-sky-50 text-[#0f172a] font-semibold' : ''
-              )}
-            >
-              <ListChecks className='w-4 h-4' />
-              <span>Organigrama</span>
-            </button>
+      <div className="flex-1 flex flex-col">
+        <div className="bg-white border-b border-slate-200 p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              {!isSidebarOpen && <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><Menu className="w-5 h-5" /></button>}
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">{selectedAgent ? selectedAgent.name : selectedDepartment ? selectedDepartment.name : "Selecciona un Departamento"}</h2>
+                <p className="text-sm text-slate-500">{selectedAgent ? selectedAgent.role : selectedDepartment ? `${selectedDepartment.agents.length} agentes disponibles` : "Elige un área para comenzar"}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <button onClick={toggleSpeech} className={`p-2 rounded-lg transition-colors ${isSpeaking ? "bg-blue-100 text-blue-600" : "hover:bg-slate-100 text-slate-600"}`}>{isSpeaking ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}</button>
+              <button onClick={exportConversation} disabled={messages.length === 0} className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><Download className="w-5 h-5 text-slate-600" /></button>
+              <button onClick={clearConversation} disabled={messages.length === 0} className="p-2 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"><Trash2 className="w-5 h-5 text-slate-600" /></button>
+              <button className="p-2 hover:bg-slate-100 rounded-lg transition-colors"><Settings className="w-5 h-5 text-slate-600" /></button>
+            </div>
           </div>
-        </aside>
-
-        {/* Main */}
-        <main className='flex-1 p-4'>
-          {authenticated ? (
-            !orgView ? (
-              <>
-                {/* Header sección */}
-                <div className='bg-white rounded-xl border p-4'>
-                  <div className='flex items-center justify-between'>
-                    <div className='flex items-center gap-3'>
-                      {React.createElement(DeptIconComp, {
-                        className: 'w-5 h-5',
-                        style: { color: pal.textHex },
-                      })}
-                      <div className='text-lg font-semibold'>{dept.name}</div>
-                      <span className='text-xs px-2 py-1 rounded-full bg-gray-100 border'>
-                        5 agentes
-                      </span>
-                      <span className='text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 border inline-flex items-center gap-1'>
-                        <ChipIconHITL className='w-3 h-3' />
-                        HITL requiere aprobación
-                      </span>
-                      <span className='text-xs px-2 py-1 rounded-full bg-sky-50 text-sky-700 border inline-flex items-center gap-1'>
-                        <ChipIconEU className='w-3 h-3' />
-                        Datos UE
-                      </span>
+        </div>
+        <div className="flex-1 overflow-hidden flex">
+          <div className="flex-1 flex flex-col">
+            {!selectedAgent ? (
+              <div className="flex-1 overflow-y-auto p-6">
+                {selectedDepartment ? (
+                  <div>
+                    <div className={`${selectedDepartment.bgGradient} p-6 rounded-2xl mb-6 border border-slate-200`}>
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className={`p-3 bg-gradient-to-r ${selectedDepartment.color} rounded-xl`}><selectedDepartment.icon className="w-8 h-8 text-white" /></div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-slate-800">{selectedDepartment.name}</h3>
+                          <p className="text-slate-600">{selectedDepartment.agents.length} agentes especializados</p>
+                        </div>
+                      </div>
                     </div>
-                    <span className={'text-xs'} style={{ color: pal.textHex }}>
-                      Ejecutivo
-                    </span>
-                  </div>
-
-                  <div className='mt-4'>
-                    <div className='text-base font-semibold'>{dept.neura.title}</div>
-                    <div className='text-sm text-gray-600'>{dept.neura.subtitle}</div>
-                    <div className='mt-3 flex gap-2 flex-wrap'>
-                      {dept.neura.tags.map((t, i) => (
-                        <button
-                          key={i}
-                          className='text-xs px-3 py-1 rounded-full border bg-gray-50 hover:bg-gray-100 inline-flex items-center gap-1'
-                        >
-                          <TagIcon text={t} />
-                          {t}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedDepartment.agents.map((agent) => (
+                        <button key={agent.id} onClick={() => setSelectedAgent(agent)} className="text-left p-6 bg-white rounded-xl border-2 border-slate-200 hover:border-blue-400 hover:shadow-lg transition-all group">
+                          <div className="flex items-start gap-4">
+                            <div className="p-3 bg-slate-50 group-hover:bg-blue-50 rounded-lg transition-colors"><agent.icon className={`w-6 h-6 ${agent.color}`} /></div>
+                            <div className="flex-1">
+                              <h4 className="font-bold text-slate-800 mb-1">{agent.name}</h4>
+                              <p className="text-sm text-slate-600 mb-3">{agent.role}</p>
+                              <div className="flex flex-wrap gap-2">
+                                {agent.expertise.map((skill, idx) => <span key={idx} className="px-2 py-1 bg-slate-100 text-slate-700 text-xs rounded-full">{skill}</span>)}
+                              </div>
+                            </div>
+                          </div>
                         </button>
                       ))}
                     </div>
-                    <div className='mt-3 flex gap-2'>
-                      <button
-                        className='h-9 px-3 rounded-md border bg-white inline-flex items-center gap-1'
-                        onClick={openChatWithErrorSamples}
-                      >
-                        <MessageCircle className='w-4 h-4' />
-                        Abrir chat
-                      </button>
-                      <button className='h-9 px-3 rounded-md border inline-flex items-center gap-1'>
-                        <ClipboardList className='w-4 h-4' />
-                        Ver registro
-                      </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                      <Crown className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                      <h3 className="text-xl font-bold text-slate-800 mb-2">Bienvenido a ECONEURA</h3>
+                      <p className="text-slate-600">Selecciona un departamento en el panel izquierdo para comenzar</p>
                     </div>
                   </div>
-                </div>
-
-                {/* Grid de agentes */}
-                <div className='mt-4 grid gap-4 grid-cols-1 xl:grid-cols-3 lg:grid-cols-2'>
-                  {filteredAgents.map(a => (
-                    <AgentCard key={a.id} a={a} busy={busyId === a.id} onRun={() => runAgent(a)} onClone={() => cloneAgent(a)} />
-                  ))}
-                </div>
-
-                {/* Actividad */}
-                <div className='mt-4 bg-white rounded-xl border p-4'>
-                  <div className='font-semibold mb-2'>Actividad</div>
-                  {activity.length === 0 ? (
-                    <div className='text-sm text-gray-500'>Sin actividad aún.</div>
+                )}
+              </div>
+            ) : (
+              <>
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center">
+                        <MessageSquare className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">Inicia la conversación</h3>
+                        <p className="text-slate-600">Escribe tu pregunta o solicitud a {selectedAgent.name}</p>
+                      </div>
+                    </div>
                   ) : (
-                    <ul className='space-y-1 text-sm'>
-                      {activity.map(e => (
-                        <li key={e.id} className='flex items-center gap-2'>
-                          <span
-                            className={cx(
-                              'px-2 py-0.5 rounded border text-[11px]',
-                              e.status === 'OK'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-rose-50 text-rose-700'
-                            )}
-                          >
-                            {e.status}
-                          </span>
-                          <span className='text-gray-500'>{new Date(e.ts).toLocaleString()}</span>
-                          <span className='font-medium'>{e.agentId}</span>
-                          <span className='text-gray-500 truncate'>{e.message}</span>
-                        </li>
-                      ))}
-                    </ul>
+                    messages.map((msg) => (
+                      <div key={msg.id} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[70%] p-4 rounded-2xl ${msg.role === "user" ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white" : "bg-white border border-slate-200 text-slate-800"}`}>
+                          {msg.role === "assistant" && msg.agentName && <p className="text-xs font-semibold text-slate-500 mb-1">{msg.agentName}</p>}
+                          <p className="whitespace-pre-wrap">{msg.content}</p>
+                          <p className={`text-xs mt-2 ${msg.role === "user" ? "text-white/70" : "text-slate-400"}`}>{msg.timestamp.toLocaleTimeString()}</p>
+                        </div>
+                      </div>
+                    ))
                   )}
                 </div>
-              </>
-            ) : (
-              <div className='p-4'>Por favor inicia sesión</div>
-            )
-          ) : (
-            <div className='p-4'>Por favor inicia sesión</div>
-          )}
-
-          {/* Footer legal */}
-          <footer className='text-[11px] text-gray-500 mt-6 pb-8'>
-            GDPR & AI Act · datos en la UE · TLS 1.2+ y AES-256 · auditoría HITL
-          </footer>
-        </main>
-      </div>
-
-      {/* Drawer de chat */}
-      {chatOpen && (
-        <div className='fixed inset-0 bg-black/30 z-40' onClick={() => setChatOpen(false)}>
-          <aside
-            className='absolute right-0 top-0 h-full w-[380px] bg-white border-l p-4 overflow-y-auto'
-            onClick={e => e.stopPropagation()}
-          >
-            <div className='text-sm font-semibold mb-2'>{dept.name} — Chat</div>
-            <div className='space-y-2'>
-              <button className='text-xs px-3 py-1 rounded-full border bg-gray-50'>
-                Resumen del día
-              </button>
-            </div>
-            <div className='mt-3 space-y-3'>
-              {chatMsgs.map(m => (
-                <div key={m.id} className='bg-gray-50 border rounded-lg p-3 text-sm'>
-                  {m.text}
+                <div className="border-t border-slate-200 bg-white p-4">
+                  <div className="flex items-end gap-2">
+                    <button onClick={toggleVoiceInput} className={`p-3 rounded-lg transition-colors ${isListening ? "bg-red-100 text-red-600" : "bg-slate-100 hover:bg-slate-200 text-slate-600"}`}>{isListening ? <Mic className="w-5 h-5" /> : <MicOff className="w-5 h-5" />}</button>
+                    <textarea value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} placeholder="Escribe tu mensaje..." className="flex-1 p-3 border border-slate-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500" rows={3} />
+                    <button onClick={handleSendMessage} disabled={!inputValue.trim()} className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"><Send className="w-5 h-5" /></button>
+                  </div>
                 </div>
-              ))}
-            </div>
-            <div className='mt-3 flex gap-2'>
-              <input
-                className='flex-1 border rounded-lg h-9 px-3 text-sm'
-                placeholder='Escribe tu mensaje...'
-              />
-              <button className='h-9 px-3 rounded-lg border'>Enviar</button>
-            </div>
-          </aside>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Tarjeta de agente
-type AgentCardProps = { a: Agent; busy?: boolean; onRun: () => Promise<any> | void; onClone: () => void };
-function AgentCard({ a, busy, onRun, onClone }: AgentCardProps) {
-  const I: any = iconForAgent(a.title);
-  return (
-    <div className='bg-white rounded-xl border p-4 flex flex-col'>
-      <div className='flex items-start justify-between gap-3'>
-        <div className='flex items-start gap-2'>
-          {React.createElement(I, { className: 'w-4 h-4 mt-0.5 text-[#4b5563]' })}
-          <div>
-            <div className='font-semibold'>{a.title}</div>
-            <div className='text-sm text-gray-600'>{a.desc}</div>
+              </>
+            )}
           </div>
         </div>
-        <span className='text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border'>
-          Activo
-        </span>
-      </div>
-
-      {a.pills && (
-        <div className='mt-2 text-[11px] text-gray-600 flex gap-2 flex-wrap'>
-          {a.pills.map((p, i) => (
-            <span key={i} className='px-2 py-0.5 rounded-md bg-gray-100 border'>
-              {p}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Barra fija 11% (paridad visual) */}
-      <div className='mt-3'>
-        <div className='h-2 rounded bg-gray-100 overflow-hidden'>
-          <div className='h-2 bg-gray-300' style={{ width: '11%' }} />
-        </div>
-        <div className='mt-1 text-[11px] text-gray-500'>11%</div>
-      </div>
-
-      <div className='mt-3 flex gap-2'>
-        <button
-          onClick={() => onRun()}
-          disabled={!!busy}
-          className={cx(
-            'h-9 px-3 rounded-md border text-sm',
-            busy
-              ? 'opacity-60 cursor-not-allowed'
-              : 'bg-gray-100 hover:bg-gray-200 flex items-center gap-1'
-          )}
-        >
-          Ejecutar
-        </button>
-        <button className='h-9 px-3 rounded-md border text-sm'>Pausar</button>
-        <button
-          onClick={() => onClone()}
-          className='h-9 px-3 rounded-md border text-sm hover:bg-gray-50 flex items-center gap-1'
-          title='Clonar agente'
-        >
-          <Copy className='w-3.5 h-3.5' />
-          Clonar
-        </button>
       </div>
     </div>
   );
 }
-
-// Organigrama
-export function OrgChart() {
-  return (
-    <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4'>
-      {DATA.map(d => {
-        const Icon = getDeptIcon(d.id);
-        const p = getPalette(d.id);
-        return (
-          <div key={d.id} className='bg-white border rounded-xl p-4'>
-            <div className='flex items-center justify-between mb-2'>
-              <div className='flex items-center gap-2'>
-                {React.createElement(Icon, { className: 'w-4 h-4', style: { color: p.textHex } })}
-                <div className='font-semibold text-sm'>{d.name}</div>
-              </div>
-              <span className='text-[11px] px-2 py-0.5 rounded-full bg-gray-100 border'>
-                5 agentes
-              </span>
-            </div>
-            <ul className='text-sm text-gray-700 space-y-1'>
-              <li className='flex items-start gap-2'>
-                <span className='mt-1 w-1.5 h-1.5 rounded-full bg-gray-400' />{' '}
-                <span className='font-medium'>{d.neura.title}</span>
-              </li>
-              {d.agents.map(a => (
-                <li key={a.id} className='flex items-start gap-2'>
-                  <span className='mt-1 w-1.5 h-1.5 rounded-full bg-gray-400' />{' '}
-                  <span>{a.title}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-/**
- * Self-tests en runtime (no rompen la UI):
- * - iconForAgent y getDeptIcon devuelven componentes válidos
- * - getPalette retorna estructura esperada y tiene fallback
- * - LogoEconeura smoke
- */
-export function __RUN_SELF_TESTS(overrides?: {
-  iconForAgent?: any;
-  getDeptIcon?: any;
-  getPalette?: any;
-  LogoEconeura?: any;
-}) {
-  const failures: string[] = [];
-  try {
-    const agentNames = [
-      'Agente: Agenda Consejo',
-      'Agente: Resumen',
-      'Agente: OKR',
-      'Agente: Phishing Triage',
-      'Agente: X',
-    ];
-    agentNames.forEach(s => {
-      const fn = overrides?.iconForAgent ?? iconForAgent;
-      const I = fn(s);
-      if (!isReactComponent(I)) failures.push(`iconForAgent inválido: ${s}`);
-    });
-    const ids = ['CEO', 'IA', 'CTO', 'CISO', 'UNKNOWN'];
-    ids.forEach(id => {
-      const gdi = overrides?.getDeptIcon ?? getDeptIcon;
-      const palFn = overrides?.getPalette ?? getPalette;
-      const I = gdi(id);
-      if (!isReactComponent(I)) failures.push(`dept icon inválido: ${id}`);
-      const pal = palFn(id);
-      if (!pal?.accentText) failures.push(`palette inválido: ${id}`);
-    });
-    const logoFn = overrides?.LogoEconeura ?? LogoEconeura;
-    const el = logoFn();
-    if (!(el as any)?.props?.dangerouslySetInnerHTML?.__html) failures.push('Logo vacío');
-  } catch (e: any) {
-    failures.push(`self-test: ${e?.message || e}`);
-  } finally {
-    if (failures.length) console.warn('[ECONEURA self-test]', failures);
-  }
-}
-
-// Ejecutar self-tests en carga para mantener comportamiento actual
-__RUN_SELF_TESTS();
-
-// Export internal helpers only for test-time access. These are safe to ship.
-export const __TEST_HELPERS = {
-  isReactComponent,
-  readVar,
-  correlationId,
-  invokeAgent,
-  iconForAgent,
-  getDeptIcon,
-  getPalette,
-};
