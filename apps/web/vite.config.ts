@@ -7,6 +7,12 @@ export default defineConfig({
     port: 3000,
     strictPort: false,
     proxy: {
+      // Backend Node.js (puerto 8080) - CRÍTICO para invokeAgent()
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false,
+      },
       // friendly local path for the mock AI server used by the cockpit preview
       '/dev-mock-ai': {
         target: 'http://localhost:8787',
