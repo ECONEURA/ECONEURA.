@@ -125,29 +125,29 @@ $StartFastAPI = $env:START_FASTAPI
 if ($StartFastAPI -eq "1") {
     Write-Host ""
     Write-Host "🤖 Iniciando servicios FastAPI..." -ForegroundColor Blue
-    
+
     # Verificar Python y uvicorn
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) {
         Write-Host "❌ Python no encontrado" -ForegroundColor Red
         $Processes | ForEach-Object { Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue }
         exit 1
     }
-    
+
     if (-not (Get-Command uvicorn -ErrorAction SilentlyContinue)) {
         Write-Host "⚠️  uvicorn no encontrado, instalando..." -ForegroundColor Yellow
         pip install uvicorn fastapi
     }
-    
+
     $Services = @("analytics", "cdo", "cfo", "chro", "ciso", "cmo", "cto", "legal", "reception", "research", "support")
     $BasePort = 8101
-    
+
     for ($i = 0; $i -lt $Services.Length; $i++) {
         $service = $Services[$i]
         $port = $BasePort + $i
-        
+
         if (Test-Path "services\neuras\$service") {
             Write-Host "  → Iniciando $service en puerto $port..." -ForegroundColor Yellow
-            
+
             $env:PORT = $port
             $ServiceProcess = Start-Process -FilePath "uvicorn" `
                 -ArgumentList "app:app", "--host", "127.0.0.1", "--port", "$port", "--reload" `
@@ -155,14 +155,14 @@ if ($StartFastAPI -eq "1") {
                 -RedirectStandardOutput "..\..\..\logs\fastapi-$service.log" `
                 -RedirectStandardError "..\..\..\logs\fastapi-$service-error.log" `
                 -PassThru -WindowStyle Hidden
-            
+
             $Processes += $ServiceProcess
             Write-Host "    ✅ $service (PID: $($ServiceProcess.Id))" -ForegroundColor Green
         } else {
             Write-Host "    ❌ $service no encontrado" -ForegroundColor Red
         }
     }
-    
+
     Write-Host "✅ Servicios FastAPI iniciados" -ForegroundColor Green
 } else {
     Write-Host ""
@@ -225,7 +225,7 @@ $null = Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action {
 try {
     while ($true) {
         Start-Sleep -Seconds 1
-        
+
         # Verificar que procesos sigan vivos
         $deadProcesses = $Processes | Where-Object { $_.HasExited }
         if ($deadProcesses) {
