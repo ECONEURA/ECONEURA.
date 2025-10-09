@@ -4,8 +4,8 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: '127.0.0.1',
-    port: 8080,
-    strictPort: true,
+    port: 3000,
+    strictPort: false,
     proxy: {
       // friendly local path for the mock AI server used by the cockpit preview
       '/dev-mock-ai': {
@@ -16,5 +16,5 @@ export default defineConfig({
       },
     },
   },
-  preview: { host: '127.0.0.1', port: 8080 },
+  preview: { host: '127.0.0.1', port: 3000 },
 });

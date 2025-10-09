@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "buildCommand": "cd apps/web && pnpm install && pnpm build",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/api/health", "destination": "/api/vercel-health.js" },
+    { "source": "/api/invoke/:agentId", "destination": "/api/vercel-invoke.js" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, X-Route, X-Correlation-Id" }
+      ]
+    }
+  ]
+}
