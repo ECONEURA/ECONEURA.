@@ -1,0 +1,217 @@
+-- ECONEURA Row-Level Security (RLS)
+-- PostgreSQL 16+
+-- Políticas de seguridad a nivel de fila
+
+-- ============================================
+-- HABILITAR RLS EN TABLAS SENSIBLES
+-- ============================================
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE invocations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE hitl_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cost_tracking ENABLE ROW LEVEL SECURITY;
+
+-- ============================================
+-- FUNCIONES AUXILIARES PARA RLS
+-- ============================================
+
+-- Función para obtener el user_id del contexto actual
+-- En producción, esto vendría del JWT token
+CREATE OR REPLACE FUNCTION auth.uid() RETURNS UUID AS $$
+BEGIN
+    -- En desarrollo, devuelve el user_id de la sesión
+    RETURN NULLIF(current_setting('app.current_user_id', TRUE), '')::UUID;
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Función para obtener el role del usuario actual
+CREATE OR REPLACE FUNCTION auth.role() RETURNS VARCHAR AS $$
+BEGIN
+    RETURN NULLIF(current_setting('app.current_user_role', TRUE), '');
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN NULL;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ============================================
+-- POLÍTICAS RLS: USERS
+-- ============================================
+
+-- Los usuarios pueden ver su propio perfil
+CREATE POLICY users_select_own ON users
+    FOR SELECT
+    USING (
+        id = auth.uid() 
+        OR auth.role() IN ('admin', 'manager')
+    );
+
+-- Los usuarios pueden actualizar su propio perfil
+CREATE POLICY users_update_own ON users
+    FOR UPDATE
+    USING (
+        id = auth.uid()
+        OR auth.role() = 'admin'
+    );
+
+-- Solo admins pueden eliminar usuarios
+CREATE POLICY users_delete_admin ON users
+    FOR DELETE
+    USING (auth.role() = 'admin');
+
+-- Solo admins pueden crear usuarios
+CREATE POLICY users_insert_admin ON users
+    FOR INSERT
+    WITH CHECK (auth.role() = 'admin');
+
+-- ============================================
+-- POLÍTICAS RLS: INVOCATIONS
+-- ============================================
+
+-- Los usuarios pueden ver sus propias invocaciones
+-- Admins y managers pueden ver todas
+CREATE POLICY invocations_select ON invocations
+    FOR SELECT
+    USING (
+        user_id = auth.uid()
+        OR auth.role() IN ('admin', 'manager')
+    );
+
+-- Los usuarios pueden crear invocaciones a su nombre
+CREATE POLICY invocations_insert_own ON invocations
+    FOR INSERT
+    WITH CHECK (user_id = auth.uid());
+
+-- Solo admins pueden actualizar invocaciones
+CREATE POLICY invocations_update_admin ON invocations
+    FOR UPDATE
+    USING (auth.role() = 'admin');
+
+-- Solo admins pueden eliminar invocaciones
+CREATE POLICY invocations_delete_admin ON invocations
+    FOR DELETE
+    USING (auth.role() = 'admin');
+
+-- ============================================
+-- POLÍTICAS RLS: AUDIT_LOG
+-- ============================================
+
+-- Solo admins y managers pueden ver audit logs
+CREATE POLICY audit_log_select_privileged ON audit_log
+    FOR SELECT
+    USING (auth.role() IN ('admin', 'manager'));
+
+-- Todos los usuarios autenticados pueden insertar en audit log
+CREATE POLICY audit_log_insert_all ON audit_log
+    FOR INSERT
+    WITH CHECK (true);
+
+-- Solo admins pueden modificar audit logs (normalmente no debería hacerse)
+CREATE POLICY audit_log_update_admin ON audit_log
+    FOR UPDATE
+    USING (auth.role() = 'admin');
+
+-- Los audit logs no se deben eliminar (compliance)
+-- CREATE POLICY audit_log_delete_never ON audit_log
+--     FOR DELETE
+--     USING (false);
+
+-- ============================================
+-- POLÍTICAS RLS: HITL_REQUESTS
+-- ============================================
+
+-- Los reviewers pueden ver requests asignados a ellos o pendientes
+CREATE POLICY hitl_requests_select ON hitl_requests
+    FOR SELECT
+    USING (
+        reviewer_id = auth.uid()
+        OR status = 'pending'
+        OR auth.role() IN ('admin', 'manager')
+    );
+
+-- Solo el sistema puede crear HITL requests
+CREATE POLICY hitl_requests_insert_system ON hitl_requests
+    FOR INSERT
+    WITH CHECK (true);  -- En producción, restringir a service account
+
+-- Los reviewers pueden actualizar sus asignaciones
+CREATE POLICY hitl_requests_update_reviewer ON hitl_requests
+    FOR UPDATE
+    USING (
+        reviewer_id = auth.uid()
+        OR auth.role() IN ('admin', 'manager')
+    );
+
+-- ============================================
+-- POLÍTICAS RLS: COST_TRACKING
+-- ============================================
+
+-- Solo admins y managers pueden ver costos
+CREATE POLICY cost_tracking_select_privileged ON cost_tracking
+    FOR SELECT
+    USING (auth.role() IN ('admin', 'manager'));
+
+-- Solo el sistema puede insertar tracking de costos
+CREATE POLICY cost_tracking_insert_system ON cost_tracking
+    FOR INSERT
+    WITH CHECK (true);  -- En producción, restringir a service account
+
+-- Solo admins pueden modificar o eliminar cost tracking
+CREATE POLICY cost_tracking_update_admin ON cost_tracking
+    FOR UPDATE
+    USING (auth.role() = 'admin');
+
+CREATE POLICY cost_tracking_delete_admin ON cost_tracking
+    FOR DELETE
+    USING (auth.role() = 'admin');
+
+-- ============================================
+-- POLÍTICAS RLS: AGENTS (sin RLS por ahora)
+-- ============================================
+
+-- Los agentes son públicos (todos los usuarios autenticados pueden verlos)
+-- No habilitamos RLS en agents por ahora
+-- ALTER TABLE agents ENABLE ROW LEVEL SECURITY;
+-- CREATE POLICY agents_select_all ON agents FOR SELECT USING (true);
+
+-- ============================================
+-- GRANTS PARA ROLES DE APLICACIÓN
+-- ============================================
+
+-- Crear roles de aplicación (opcional, para mayor seguridad)
+
+-- Role para el servicio de API
+-- CREATE ROLE econeura_api WITH LOGIN PASSWORD 'api_password_change_in_prod';
+-- GRANT CONNECT ON DATABASE econeura_dev TO econeura_api;
+-- GRANT USAGE ON SCHEMA public TO econeura_api;
+-- GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO econeura_api;
+-- GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO econeura_api;
+
+-- Role para analytics (solo lectura)
+-- CREATE ROLE econeura_analytics WITH LOGIN PASSWORD 'analytics_password';
+-- GRANT CONNECT ON DATABASE econeura_dev TO econeura_analytics;
+-- GRANT USAGE ON SCHEMA public TO econeura_analytics;
+-- GRANT SELECT ON ALL TABLES IN SCHEMA public TO econeura_analytics;
+
+-- ============================================
+-- TESTING RLS
+-- ============================================
+
+-- Para probar RLS en desarrollo:
+-- SET app.current_user_id = 'uuid-del-usuario';
+-- SET app.current_user_role = 'admin';
+-- SELECT * FROM users;  -- Verás según las políticas
+
+-- ============================================
+-- FIN DE RLS
+-- ============================================
+
+-- Listar políticas creadas
+SELECT schemaname, tablename, policyname, roles, cmd, qual
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
