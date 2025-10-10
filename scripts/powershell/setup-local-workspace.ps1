@@ -99,7 +99,8 @@ if (-not $SkipCopy) {
     throw "robocopy falló con código $LASTEXITCODE"
   }
   Write-Host "[setup] Copia completada" -ForegroundColor Green
-} else {
+}
+else {
   Write-Host "[setup] Fase de copiado omitida (SkipCopy)" -ForegroundColor Yellow
 }
 
@@ -111,10 +112,12 @@ if (-not $SkipInstall) {
     pnpm install --no-frozen-lockfile --package-import-method copy
     pnpm install --no-frozen-lockfile --filter @econeura/api-node --package-import-method copy
     Write-Host "[setup] Dependencias instaladas correctamente" -ForegroundColor Green
-  } finally {
+  }
+  finally {
     Pop-Location
   }
-} else {
+}
+else {
   Write-Host "[setup] Instalación omitida (SkipInstall)" -ForegroundColor Yellow
 }
 
@@ -123,7 +126,8 @@ if ($RunChecks -and -not $SkipInstall) {
   Push-Location (Join-Path $destinationRoot 'apps\api_node')
   try {
     pnpm run check
-  } finally {
+  }
+  finally {
     Pop-Location
   }
 }

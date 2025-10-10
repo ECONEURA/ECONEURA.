@@ -11,6 +11,8 @@ try {
 }
 
 const { createValidator } = require('../middleware/validate');
+const { validateRequest } = require('../middleware/validateRequest');
+const { applyGuards } = require('../middleware/applyGuards');
 const { invokeMakeAgent } = require('../services/makeService');
 const { invokeOpenAIAgent } = require('../services/openaiService');
 const agentsConfig = require('../config/agents.json');
@@ -69,7 +71,11 @@ function handleMakeError(error, res, agentId, correlationId, idempotencyKey) {
     });
 }
 
-router.post('/:agentId', validateInvokeBody, async (req, res, next) => {
+router.post('/:agentId',
+    validateInvokeBody,
+    validateRequest,
+    applyGuards,
+    async (req, res, next) => {
     const { agentId } = req.params;
     const correlationId = req.correlationId || req.headers['x-correlation-id'] || crypto.randomUUID();
     const idempotencyKey = normalizeIdempotency(req, correlationId);

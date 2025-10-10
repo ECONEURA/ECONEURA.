@@ -1,125 +1,907 @@
 {
-  "routes": [
+  "version": "1.0.0",
+  "generated": "2025-10-10T21:53:39.851Z",
+  "totalAgents": 60,
+  "agents": [
     {
       "id": "neura-1",
-      "dept": "analytics",
-      "service": "analytics",
-      "port": 8101,
-      "url": "https://hook.us2.make.com/analytics",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.7,
-      "max_tokens": 2000
+      "name": "Core Business Agent 1",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3101/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-2",
-      "dept": "cdo",
-      "service": "cdo",
-      "port": 8102,
-      "url": "https://hook.us2.make.com/cdo",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.5,
-      "max_tokens": 2000
+      "name": "Core Business Agent 2",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3102/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-3",
-      "dept": "cfo",
-      "service": "cfo",
-      "port": 8103,
-      "url": "https://hook.us2.make.com/cfo",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.3,
-      "max_tokens": 1500
+      "name": "Core Business Agent 3",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3103/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-4",
-      "dept": "chro",
-      "service": "chro",
-      "port": 8104,
-      "url": "https://hook.us2.make.com/chro",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.6,
-      "max_tokens": 2000
+      "name": "Core Business Agent 4",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3104/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-5",
-      "dept": "ciso",
-      "service": "ciso",
-      "port": 8105,
-      "url": "https://hook.us2.make.com/ciso",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.4,
-      "max_tokens": 1500
+      "name": "Core Business Agent 5",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3105/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-6",
-      "dept": "cmo",
-      "service": "cmo",
-      "port": 8106,
-      "url": "https://hook.us2.make.com/cmo",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.8,
-      "max_tokens": 2500
+      "name": "Core Business Agent 6",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3106/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-7",
-      "dept": "cto",
-      "service": "cto",
-      "port": 8107,
-      "url": "https://hook.us2.make.com/cto",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.5,
-      "max_tokens": 2000
+      "name": "Core Business Agent 7",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3107/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-8",
-      "dept": "legal",
-      "service": "legal",
-      "port": 8108,
-      "url": "https://hook.us2.make.com/legal",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.2,
-      "max_tokens": 3000
+      "name": "Core Business Agent 8",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3108/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-9",
-      "dept": "reception",
-      "service": "reception",
-      "port": 8109,
-      "url": "https://hook.us2.make.com/reception",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.7,
-      "max_tokens": 1500
+      "name": "Core Business Agent 9",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3109/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
       "id": "neura-10",
-      "dept": "research",
-      "service": "research",
-      "port": 8110,
-      "url": "https://hook.us2.make.com/research",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.9,
-      "max_tokens": 3000
+      "name": "Core Business Agent 10",
+      "category": "Core Business",
+      "endpoint": "http://localhost:3110/api/process",
+      "description": "AI agent for core business tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     },
     {
-      "id": "neura-11",
-      "dept": "support",
-      "service": "support",
-      "port": 8111,
-      "url": "https://hook.us2.make.com/support",
-      "auth": "header",
-      "model": "gpt-4",
-      "temperature": 0.7,
-      "max_tokens": 2000
+      "id": "specialist-1",
+      "name": "Domain Specialists Agent 1",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3111/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-2",
+      "name": "Domain Specialists Agent 2",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3112/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-3",
+      "name": "Domain Specialists Agent 3",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3113/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-4",
+      "name": "Domain Specialists Agent 4",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3114/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-5",
+      "name": "Domain Specialists Agent 5",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3115/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-6",
+      "name": "Domain Specialists Agent 6",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3116/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-7",
+      "name": "Domain Specialists Agent 7",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3117/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-8",
+      "name": "Domain Specialists Agent 8",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3118/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-9",
+      "name": "Domain Specialists Agent 9",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3119/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-10",
+      "name": "Domain Specialists Agent 10",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3120/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-11",
+      "name": "Domain Specialists Agent 11",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3121/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-12",
+      "name": "Domain Specialists Agent 12",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3122/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-13",
+      "name": "Domain Specialists Agent 13",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3123/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-14",
+      "name": "Domain Specialists Agent 14",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3124/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "specialist-15",
+      "name": "Domain Specialists Agent 15",
+      "category": "Domain Specialists",
+      "endpoint": "http://localhost:3125/api/process",
+      "description": "AI agent for domain specialists tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-1",
+      "name": "Customer Support Agent 1",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3126/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-2",
+      "name": "Customer Support Agent 2",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3127/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-3",
+      "name": "Customer Support Agent 3",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3128/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-4",
+      "name": "Customer Support Agent 4",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3129/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-5",
+      "name": "Customer Support Agent 5",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3130/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-6",
+      "name": "Customer Support Agent 6",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3131/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-7",
+      "name": "Customer Support Agent 7",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3132/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-8",
+      "name": "Customer Support Agent 8",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3133/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-9",
+      "name": "Customer Support Agent 9",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3134/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "support-10",
+      "name": "Customer Support Agent 10",
+      "category": "Customer Support",
+      "endpoint": "http://localhost:3135/api/process",
+      "description": "AI agent for customer support tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-1",
+      "name": "Data Analytics Agent 1",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3136/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-2",
+      "name": "Data Analytics Agent 2",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3137/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-3",
+      "name": "Data Analytics Agent 3",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3138/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-4",
+      "name": "Data Analytics Agent 4",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3139/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-5",
+      "name": "Data Analytics Agent 5",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3140/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-6",
+      "name": "Data Analytics Agent 6",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3141/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-7",
+      "name": "Data Analytics Agent 7",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3142/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-8",
+      "name": "Data Analytics Agent 8",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3143/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-9",
+      "name": "Data Analytics Agent 9",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3144/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "analyst-10",
+      "name": "Data Analytics Agent 10",
+      "category": "Data Analytics",
+      "endpoint": "http://localhost:3145/api/process",
+      "description": "AI agent for data analytics tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-1",
+      "name": "Creative & Content Agent 1",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3146/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-2",
+      "name": "Creative & Content Agent 2",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3147/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-3",
+      "name": "Creative & Content Agent 3",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3148/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-4",
+      "name": "Creative & Content Agent 4",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3149/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-5",
+      "name": "Creative & Content Agent 5",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3150/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-6",
+      "name": "Creative & Content Agent 6",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3151/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-7",
+      "name": "Creative & Content Agent 7",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3152/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "creative-8",
+      "name": "Creative & Content Agent 8",
+      "category": "Creative & Content",
+      "endpoint": "http://localhost:3153/api/process",
+      "description": "AI agent for creative & content tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-1",
+      "name": "Technical Operations Agent 1",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3154/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-2",
+      "name": "Technical Operations Agent 2",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3155/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-3",
+      "name": "Technical Operations Agent 3",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3156/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-4",
+      "name": "Technical Operations Agent 4",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3157/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-5",
+      "name": "Technical Operations Agent 5",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3158/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-6",
+      "name": "Technical Operations Agent 6",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3159/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
+    },
+    {
+      "id": "tech-7",
+      "name": "Technical Operations Agent 7",
+      "category": "Technical Operations",
+      "endpoint": "http://localhost:3160/api/process",
+      "description": "AI agent for technical operations tasks",
+      "status": "active",
+      "capabilities": [
+        "text-generation",
+        "analysis",
+        "reasoning"
+      ],
+      "maxTokens": 4096,
+      "temperature": 0.7
     }
   ]
 }

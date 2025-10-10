@@ -71,7 +71,7 @@ const nowIso = () => new Date().toISOString();
 function correlationId() {
   try {
     const rnd = (globalThis as any).crypto?.getRandomValues(new Uint32Array(4));
-    if (rnd) return Array.from(rnd).map((n) => n.toString(16)).join("");
+    if (rnd) return (Array.from(rnd) as number[]).map((n) => n.toString(16)).join("");
     throw new Error('no crypto');
   } catch {
     const r = () => Math.floor(Math.random() * 1e9).toString(16);
