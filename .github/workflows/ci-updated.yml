@@ -1,14 +1,11 @@
 # ECONEURA CI/CD - Actualizado para 11 Agentes
 # Actualizado: 8 de octubre 2025
-
 name: CI Full
-
 on:
   push:
     branches: [main, develop, copilot/**]
   pull_request:
     branches: [main, develop]
-
 jobs:
   lint-and-typecheck:
     name: Lint & TypeCheck
@@ -20,6 +17,9 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
+          
+      - name: Install pnpm globally
+        run: npm install -g pnpm
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -34,7 +34,6 @@ jobs:
         
       - name: TypeCheck
         run: pnpm -w typecheck
-
   test-frontend:
     name: Test Frontend
     runs-on: ubuntu-latest
@@ -46,6 +45,9 @@ jobs:
         with:
           node-version: '20'
           
+      - name: Install pnpm globally
+        run: npm install -g pnpm
+          
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
@@ -56,24 +58,17 @@ jobs:
         
       - name: Run tests with coverage
         run: pnpm -w test:coverage
-
   test-backend-services:
     name: Test Backend Services
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: 
+        service:
           - analytics
           - cdo
-          - cfo
-          - chro
-          - ciso
-          - cmo
-          - cto
-          - legal
-          - reception
-          - research
-          - support
+          - optimization
+          - prediction
+          - game-theory
     steps:
       - uses: actions/checkout@v5
       
@@ -81,18 +76,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          cache: 'pip'
           
-      - name: Install dependencies for ${{ matrix.service }}
+      - name: Install Python dependencies
         run: |
-          cd services/neuras/${{ matrix.service }}
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+          python -m pip install --upgrade pip
+          pip install -r services/${{ matrix.service }}/requirements.txt
           
-      - name: Run tests for ${{ matrix.service }}
-        run: |
-          cd services/neuras/${{ matrix.service }}
-          python -m pytest test_app.py -v || echo "Tests not found, skipping"
-
+      - name: Run tests
+        working-directory: services/${{ matrix.service }}
+        run: pytest
   test-auth-service:
     name: Test Auth Service
     runs-on: ubuntu-latest
@@ -103,22 +96,20 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          cache: 'pip'
           
       - name: Install dependencies
         run: |
-          cd services/auth
-          pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx
+          python -m pip install --upgrade pip
+          pip install -r services/auth/requirements.txt
           
       - name: Run tests
-        run: |
-          cd services/auth
-          python -m pytest test_app.py -v || echo "Tests not found, skipping"
-
+        working-directory: services/auth
+        run: pytest
   build:
-    name: Build All Packages
+    name: Build
     runs-on: ubuntu-latest
-    needs: [lint-and-typecheck]
+    needs: [lint-and-typecheck, test-frontend]
     steps:
       - uses: actions/checkout@v5
       
@@ -126,6 +117,9 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: '20'
+          
+      - name: Install pnpm globally
+        run: npm install -g pnpm
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
@@ -137,7 +131,6 @@ jobs:
         
       - name: Build packages
         run: pnpm -w build
-
   docker-build:
     name: Docker Build Check
     runs-on: ubuntu-latest
@@ -150,7 +143,6 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose -f docker-compose.dev.enhanced.yml build
-
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -181,6 +173,9 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.11'
+          
+      - name: Install pnpm globally
+        run: npm install -g pnpm
           
       - name: Setup pnpm
         uses: pnpm/action-setup@v2
