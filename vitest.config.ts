@@ -12,10 +12,6 @@ function normalize(p: string) {
 
 export default defineConfig({
   esbuild: { sourcemap: true },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts', './vitest.setup.mock-react-dom.ts'],
   resolve: {
     alias: [
       // Prefer the actual installed react runtime modules so Vite can resolve helper imports
@@ -34,7 +30,7 @@ export default defineConfig({
       { find: 'react-dom', replacement: normalize(req.resolve('react-dom')) },
       { 
         find: 'react-dom/client', 
-        replacement: normalize('C:/Dev/ECONEURA-PUNTO/node_modules/react-dom/client.js')
+        replacement: normalize(req.resolve('react-dom/client'))
       },
     ],
   },
@@ -51,13 +47,14 @@ export default defineConfig({
     noExternal: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime'],
   },
   test: {
-    environment: 'node',
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./vitest.setup.ts', './vitest.setup.mock-react-dom.ts'],
     environmentMatchGlobs: [
       ['apps/**/*.{test,spec}.{ts,tsx,js,jsx}', 'jsdom'],
       ['apps/web/**/*.test.{ts,tsx,js,jsx}', 'jsdom'],
       ['apps/web/**/*.spec.{ts,tsx,js,jsx}', 'jsdom'],
     ],
-    globals: true,
     // Note: `deps.inline` at test-level is deprecated; server.deps.inline + optimizeDeps.include
     // already cover the needed inlining for react runtimes.
     setupFiles: [path.resolve(__dirname, 'tests/setup.ts')],

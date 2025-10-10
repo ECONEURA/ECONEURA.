@@ -1,0 +1,82 @@
+# ECONEURA - Basic Docker Compose (without auth service)
+# For CI/CD environments where building is problematic
+
+version: '3.9'
+
+services:
+  # === BASE DE DATOS ===
+  postgres:
+    image: postgres:16-alpine
+    container_name: econeura-postgres
+    environment:
+      POSTGRES_USER: econeura
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: econeura_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - ./db/seeds:/seeds:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U econeura"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - econeura-net
+
+  # === TRACING (JAEGER) ===
+  jaeger:
+    image: jaegertracing/all-in-one:1.53
+    container_name: econeura-jaeger
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_HTTP_HOST_PORT=:4318
+      - COLLECTOR_OTLP_GRPC_HOST_PORT=:4317
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    networks:
+      - econeura-net
+
+  # === MÉTRICAS (PROMETHEUS) ===
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: econeura-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - econeura-net
+
+  # === DASHBOARDS (GRAFANA) ===
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: econeura-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3001:3000"  # Port 3001 to avoid conflict with web app
+    networks:
+      - econeura-net
+
+networks:
+  econeura-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
