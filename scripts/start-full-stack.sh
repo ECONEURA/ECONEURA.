@@ -120,19 +120,19 @@ START_FASTAPI="${START_FASTAPI:-0}"
 if [ "$START_FASTAPI" = "1" ]; then
   echo ""
   echo -e "${BLUE}🤖 Iniciando servicios FastAPI...${NC}"
-  
+
   # Verificar Python y uvicorn
   command -v python >/dev/null 2>&1 || { echo -e "${RED}❌ Python no encontrado${NC}"; exit 1; }
   command -v uvicorn >/dev/null 2>&1 || { echo -e "${YELLOW}⚠️  uvicorn no encontrado, instalando...${NC}"; pip install uvicorn fastapi; }
-  
+
   # Puertos base
   BASE_PORT=8101
   SERVICES=("analytics" "cdo" "cfo" "chro" "ciso" "cmo" "cto" "legal" "reception" "research" "support")
-  
+
   for i in "${!SERVICES[@]}"; do
     service="${SERVICES[$i]}"
     port=$((BASE_PORT + i))
-    
+
     if [ -d "services/neuras/$service" ]; then
       echo -e "${YELLOW}  → Iniciando $service en puerto $port...${NC}"
       cd "services/neuras/$service"
@@ -145,7 +145,7 @@ if [ "$START_FASTAPI" = "1" ]; then
       echo -e "${RED}    ❌ $service no encontrado${NC}"
     fi
   done
-  
+
   echo -e "${GREEN}✅ Servicios FastAPI iniciados${NC}"
 else
   echo ""

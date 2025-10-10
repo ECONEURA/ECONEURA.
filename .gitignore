@@ -59,3 +59,5 @@ lib/*.backup
 # Session and runtime artifacts
 .automation-trigger
 .vitest_mode
+
+.vercel
