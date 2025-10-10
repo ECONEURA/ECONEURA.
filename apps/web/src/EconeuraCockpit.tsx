@@ -71,7 +71,7 @@ const nowIso = () => new Date().toISOString();
 function correlationId() {
   try {
     const rnd = (globalThis as any).crypto?.getRandomValues(new Uint32Array(4));
-    if (rnd) return Array.from(rnd).map((n) => n.toString(16)).join("");
+    if (rnd) return (Array.from(rnd) as number[]).map((n) => n.toString(16)).join("");
     throw new Error('no crypto');
   } catch {
     const r = () => Math.floor(Math.random() * 1e9).toString(16);
@@ -80,22 +80,31 @@ function correlationId() {
 }
 
 async function invokeAgent(agentId: string, route: 'local' | 'azure' = 'azure', payload: any = {}) {
-  if (!env.GW_URL || !env.GW_KEY) {
-    return { ok: true, simulated: true, output: `Simulado ${agentId}` };
+  // DESARROLLO: usar proxy local /api/invoke (Vite → backend:8080)
+  const url = `/api/invoke/${agentId}`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer dev-token-local-123',
+        'X-Route': route,
+        'X-Correlation-Id': correlationId(),
+      },
+      body: JSON.stringify({ input: payload?.input ?? "" }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      return { ok: false, output: `Error backend (${res.status}): ${errorText}` };
+    }
+
+    const data = await res.json();
+    return { ok: true, output: data.output || JSON.stringify(data) };
+  } catch (error: any) {
+    return { ok: false, output: `Error al conectar: ${error.message}` };
   }
-  const url = `${String(env.GW_URL).replace(/\/$/, '')}/api/invoke/${agentId}`;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${env.GW_KEY}`,
-      'X-Route': route,
-      'X-Correlation-Id': correlationId(),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ input: payload?.input ?? "", policy: { pii: 'mask' }, meta: { agentId, source: 'ui' } }),
-  });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json().catch(() => ({}));
 }
 
 // Telemetría opcional → Azure Log Analytics HTTP Data Collector
@@ -380,7 +389,31 @@ export default function EconeuraUI() {
     if(!listening){ setChatInput(''); setListening(true); try{ rec.start(); }catch{} }
     else { try{ rec.stop(); }catch{} }
   }
-  function onSend(){ const text = chatInput.trim(); if(!text) return; setChatMsgs(v => [{ id: correlationId(), text }, ...v]); setChatInput(''); }
+
+  async function onSend() {
+    const text = chatInput.trim();
+    if(!text) return;
+
+    // Agregar mensaje del usuario
+    setChatMsgs(v => [{ id: correlationId(), text }, ...v]);
+    setChatInput('');
+
+    // Llamar al backend (NEURA agent del departamento activo)
+    const neuraId = `neura-${dept.id.toLowerCase()}`;
+    try {
+      const response = await invokeAgent(neuraId, 'azure', { input: text });
+
+      if (response.ok !== false && response.output) {
+        // Agregar respuesta del agente
+        setChatMsgs(v => [{ id: correlationId(), text: response.output }, ...v]);
+      } else {
+        // Error del backend
+        setChatMsgs(v => [{ id: correlationId(), text: `Error: ${response.output || 'Sin respuesta'}` }, ...v]);
+      }
+    } catch (error: any) {
+      setChatMsgs(v => [{ id: correlationId(), text: `Error al conectar: ${error.message}` }, ...v]);
+    }
+  }
 
   const filteredAgents = useMemo(() => {
     if (!q.trim()) return dept.agents;
@@ -429,7 +462,7 @@ Crea un agente y conéctalo a Make.
         <div className="flex items-center gap-2 font-semibold tracking-wide">
           <LogoEconeura />
           <span>ECONEURA</span>
-          
+
         </div>
         <div className="flex items-center gap-2">
           <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="BUSCAR AGENTES" aria-label="Buscar agentes" className="h-9 w-64 rounded-lg border px-3 text-sm" />
@@ -505,7 +538,7 @@ Crea un agente y conéctalo a Make.
                     ))}
                   </div>
                   <div className="mt-3 flex gap-2">
-                    <button className="h-9 px-3 rounded-md border bg-white inline-flex items-center gap-1" onClick={openChatWithErrorSamples}><MessageCircle className="w-4 h-4"/>Abrir chat</button>
+                    <button className="h-9 px-3 rounded-md border bg-white inline-flex items-center gap-1" onClick={() => { setChatOpen(true); setChatMsgs([]); }}><MessageCircle className="w-4 h-4"/>Abrir chat</button>
                     <button className="h-9 px-3 rounded-md border inline-flex items-center gap-1"><ClipboardList className="w-4 h-4"/>Ver registro</button>
                   </div>
                 </div>
@@ -549,7 +582,7 @@ Crea un agente y conéctalo a Make.
         </main>
       </div>
 
-      
+
 
       {/* Drawer de chat */}
       {chatOpen && (

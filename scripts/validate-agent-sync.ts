@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * Script de validación de sincronización entre agent-routing.json y EconeuraCockpit.tsx
- * 
+ *
  * Verifica que:
  * 1. Todos los agentes en agent-routing.json existen en el Cockpit
  * 2. No hay agentes en el Cockpit sin ruta correspondiente
  * 3. Los IDs coinciden correctamente
- * 
+ *
  * Uso:
  *   pnpm tsx scripts/validate-agent-sync.ts
  *   node --loader ts-node/esm scripts/validate-agent-sync.ts
@@ -50,14 +50,14 @@ function log(color: keyof typeof colors, message: string) {
 
 function loadAgentRouting(): AgentRoute[] {
   const routingPath = join(ROOT, 'packages/configs/agent-routing.json');
-  
+
   if (!existsSync(routingPath)) {
     throw new Error(`❌ No se encuentra agent-routing.json en: ${routingPath}`);
   }
 
   const content = readFileSync(routingPath, 'utf-8');
   const data = JSON.parse(content);
-  
+
   if (!data.routes || !Array.isArray(data.routes)) {
     throw new Error('❌ agent-routing.json no tiene el formato esperado (debe tener array "routes")');
   }
@@ -67,23 +67,23 @@ function loadAgentRouting(): AgentRoute[] {
 
 function extractCockpitAgents(): string[] {
   const cockpitPath = join(ROOT, 'apps/web/src/EconeuraCockpit.tsx');
-  
+
   if (!existsSync(cockpitPath)) {
     throw new Error(`❌ No se encuentra EconeuraCockpit.tsx en: ${cockpitPath}`);
   }
 
   const content = readFileSync(cockpitPath, 'utf-8');
-  
+
   // Regex para encontrar todos los IDs de agentes en el formato: id: "neura-X"
   const regex = /\bid:\s*["']neura-\d+["']/g;
   const matches = content.match(regex) || [];
-  
+
   // Extraer solo los IDs (neura-1, neura-2, etc.)
   const ids = matches.map(m => {
     const match = m.match(/neura-\d+/);
     return match ? match[0] : '';
   }).filter(Boolean);
-  
+
   // Eliminar duplicados
   return [...new Set(ids)];
 }

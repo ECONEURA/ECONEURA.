@@ -4,12 +4,7 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').filter(Boo
 
 const corsMiddleware = cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (curl, Postman, same-origin)
-        if (!origin) {
-            return callback(null, true);
-        }
-        
-        if (allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+        if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
             callback(null, true);
         } else {
             callback(new Error('Not allowed by CORS'));

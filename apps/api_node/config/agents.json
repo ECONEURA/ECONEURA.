@@ -1,20 +1,62 @@
 {
   "makeAgents": {
-    "a-ceo-01": { "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_1", "name": "CEO Calendar" },
-    "a-ceo-02": { "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_2", "name": "CEO Email" },
-    "a-ceo-03": { "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_3", "name": "CEO Reports" },
-    "a-ceo-04": { "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_4", "name": "CEO Tasks" }
+    "a-ceo-01": {
+      "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_1",
+      "name": "CEO Calendar"
+    },
+    "a-ceo-02": {
+      "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_2",
+      "name": "CEO Email"
+    },
+    "a-ceo-03": {
+      "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_3",
+      "name": "CEO Reports"
+    },
+    "a-ceo-04": {
+      "webhookUrl": "https://hook.eu2.make.com/YOUR_WEBHOOK_4",
+      "name": "CEO Tasks"
+    }
   },
   "openaiAgents": {
-    "neura-ceo": { "assistantId": "asst_PLACEHOLDER_1", "threadId": "thread_PLACEHOLDER_1" },
-    "neura-ia": { "assistantId": "asst_PLACEHOLDER_2", "threadId": "thread_PLACEHOLDER_2" },
-    "neura-cso": { "assistantId": "asst_PLACEHOLDER_3", "threadId": "thread_PLACEHOLDER_3" },
-    "neura-cto": { "assistantId": "asst_PLACEHOLDER_4", "threadId": "thread_PLACEHOLDER_4" },
-    "neura-ciso": { "assistantId": "asst_PLACEHOLDER_5", "threadId": "thread_PLACEHOLDER_5" },
-    "neura-coo": { "assistantId": "asst_PLACEHOLDER_6", "threadId": "thread_PLACEHOLDER_6" },
-    "neura-chro": { "assistantId": "asst_PLACEHOLDER_7", "threadId": "thread_PLACEHOLDER_7" },
-    "neura-mkt": { "assistantId": "asst_PLACEHOLDER_8", "threadId": "thread_PLACEHOLDER_8" },
-    "neura-cfo": { "assistantId": "asst_PLACEHOLDER_9", "threadId": "thread_PLACEHOLDER_9" },
-    "neura-cdo": { "assistantId": "asst_PLACEHOLDER_10", "threadId": "thread_PLACEHOLDER_10" }
+    "neura-ceo": {
+      "assistantId": "asst_Xw7BbXq1g37YmQxFvscit9CI",
+      "threadId": "thread_qXMI9Td1hNyPI2lJAWTVFgUv"
+    },
+    "neura-ia": {
+      "assistantId": "asst_VAs7QagFI9gIOhGKHy14OiRT",
+      "threadId": "thread_Brj1AcX32W493CophFeZwbxt"
+    },
+    "neura-cso": {
+      "assistantId": "asst_YGx5ZQHZxory7888DR7iOX0M",
+      "threadId": "thread_L4yvdnKKO5twHgzy38Xbs5Hi"
+    },
+    "neura-cto": {
+      "assistantId": "asst_homnJtF2SGTmBQjYSgJQdfli",
+      "threadId": "thread_bIW3zBZ5Ec8AW2gIWQl1IJFb"
+    },
+    "neura-ciso": {
+      "assistantId": "asst_MxIA1QSAs64XPX539dh4MW5t",
+      "threadId": "thread_3yMLxzpUsA0snntx71HFM3yt"
+    },
+    "neura-coo": {
+      "assistantId": "asst_NWXWdOUT7Hj1FtpjntOVP3Jv",
+      "threadId": "thread_Zo2hqF6yUwUvhl8rcaiSA0SC"
+    },
+    "neura-chro": {
+      "assistantId": "asst_YFj7ofqNQHEziCQgrDw3ft66",
+      "threadId": "thread_Ir0KfHUktvjIX1UNmV5uZrwC"
+    },
+    "neura-mkt": {
+      "assistantId": "asst_RIZw1ppLfl5LoBcXffAfapAq",
+      "threadId": "thread_Ldruk9vPTQwhZvasKWcgeNBz"
+    },
+    "neura-cfo": {
+      "assistantId": "asst_JSRCYxV33kDrDfeWv0Sa4Qr7",
+      "threadId": "thread_Jgd6G8SQXURFiHml2WK333JJ"
+    },
+    "neura-cdo": {
+      "assistantId": "asst_M6R0fN2yADPz15nLRj2XYDP3",
+      "threadId": "thread_99uoBqNpoHOwBTTZD3Ggjl39"
+    }
   }
 }

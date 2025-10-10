@@ -1,16 +1,15 @@
 name: CI Full Test Suite
 on:
   push:
-    branches: [ "main", "develop" ]
+    branches: ["main", "develop"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
   workflow_dispatch: {}
 
 jobs:
   test-full:
     runs-on: ubuntu-latest
     steps:
-
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v4
         with:

@@ -90,14 +90,14 @@ function Invoke-SafeCommand {
         [scriptblock]$Command,
         [scriptblock]$Rollback
     )
-    
+
     Write-Step $Description
-    
+
     if ($DryRun) {
         Write-Step "DRY RUN: Would execute $Description" "WARN"
         return $true
     }
-    
+
     try {
         & $Command
         Write-Step "$Description ✓" "SUCCESS"
@@ -296,7 +296,7 @@ const agentsConfig = require('../config/agents.json');
 
 async function invokeMakeAgent(agentId, payload) {
     const agent = agentsConfig.makeAgents[agentId];
-    
+
     if (!agent) {
         throw new Error(`Make agent not configured: ${agentId}`);
     }
@@ -334,7 +334,7 @@ const openai = new OpenAI({
 
 async function invokeOpenAIAgent(neuraId, payload) {
     const neura = agentsConfig.openaiAgents[neuraId];
-    
+
     if (!neura) {
         throw new Error(`OpenAI agent not configured: ${neuraId}`);
     }
@@ -389,13 +389,13 @@ Set-Content -Path "$backendRoot/services/openaiService.js" -Value $openaiService
 $authJs = @'
 function authMiddleware(req, res, next) {
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Missing or invalid Authorization header' });
     }
 
     const token = authHeader.substring(7);
-    
+
     if (token !== process.env.API_BEARER_TOKEN) {
         return res.status(401).json({ error: 'Invalid token' });
     }
@@ -545,9 +545,9 @@ Write-Step "=== STEP 6: CREATE OPENAI ASSISTANTS ===" "INFO"
 
 if ($OpenAIKey) {
     Write-Step "Creating OpenAI Assistants and Threads..." "INFO"
-    
+
     $assistantsCreated = @{}
-    
+
     foreach ($neura in $CONFIG.OpenAI.Neuras) {
         try {
             # Create Assistant
@@ -556,7 +556,7 @@ if ($OpenAIKey) {
                 name = $neura.name
                 instructions = $neura.prompt
             } | ConvertTo-Json -Depth 10
-            
+
             $assistantResponse = Invoke-RestMethod -Uri "https://api.openai.com/v1/assistants" `
                 -Method POST `
                 -Headers @{
@@ -565,7 +565,7 @@ if ($OpenAIKey) {
                     "OpenAI-Beta" = "assistants=v2"
                 } `
                 -Body $assistantBody
-            
+
             # Create Thread
             $threadResponse = Invoke-RestMethod -Uri "https://api.openai.com/v1/threads" `
                 -Method POST `
@@ -575,27 +575,27 @@ if ($OpenAIKey) {
                     "OpenAI-Beta" = "assistants=v2"
                 } `
                 -Body "{}"
-            
+
             $assistantsCreated[$neura.id] = @{
                 assistantId = $assistantResponse.id
                 threadId = $threadResponse.id
             }
-            
+
             Write-Step "Created $($neura.name): $($assistantResponse.id)" "SUCCESS"
         }
         catch {
             Write-Step "Failed to create $($neura.name): $($_.Exception.Message)" "ERROR"
         }
     }
-    
+
     # Update agents.json with real IDs
     $agentsConfigPath = "$backendRoot/config/agents.json"
     $agentsConfig = Get-Content $agentsConfigPath | ConvertFrom-Json
-    
+
     foreach ($neuraId in $assistantsCreated.Keys) {
         $agentsConfig.openaiAgents.$neuraId = $assistantsCreated[$neuraId]
     }
-    
+
     $agentsConfig | ConvertTo-Json -Depth 10 | Set-Content $agentsConfigPath -Encoding UTF8
     Write-Step "Updated agents.json with real Assistant/Thread IDs" "SUCCESS"
 }
@@ -623,21 +623,21 @@ Write-Step "Created apps/web/.env.local" "SUCCESS"
 
 if (-not $SkipTests) {
     Write-Step "=== STEP 8: VALIDATION TESTS ===" "INFO"
-    
+
     # Test 1: TypeScript compilation
     Invoke-SafeCommand "Running TypeScript typecheck" {
         Push-Location $ROOT
         pnpm -w typecheck
         Pop-Location
     } {}
-    
+
     # Test 2: Lint
     Invoke-SafeCommand "Running ESLint" {
         Push-Location $ROOT
         pnpm -w lint
         Pop-Location
     } {}
-    
+
     # Test 3: Backend syntax check
     Invoke-SafeCommand "Checking backend syntax" {
         Push-Location $backendRoot
