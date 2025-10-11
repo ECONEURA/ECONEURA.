@@ -12,10 +12,6 @@ function normalize(p: string) {
 
 export default defineConfig({
   esbuild: { sourcemap: true },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts', './vitest.setup.mock-react-dom.ts'],
   resolve: {
     alias: [
       // Prefer the actual installed react runtime modules so Vite can resolve helper imports
@@ -32,10 +28,7 @@ export default defineConfig({
       // Force a single copy of react/react-dom for Vite test builds to avoid multiple versions
       { find: 'react', replacement: normalize(req.resolve('react')) },
       { find: 'react-dom', replacement: normalize(req.resolve('react-dom')) },
-      { 
-        find: 'react-dom/client', 
-        replacement: normalize('C:/Dev/ECONEURA-PUNTO/node_modules/react-dom/client.js')
-      },
+      { find: 'react-dom/client', replacement: normalize(req.resolve('react-dom/client')) },
     ],
   },
   // Force Vite/dev server to inline these deps so import analysis can find jsx runtimes

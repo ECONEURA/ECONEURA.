@@ -1,35 +1,20 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
-
-// https://vitejs.dev/config/
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    port: 3000,
+    host: '127.0.0.1',
+    port: 8080,
+    strictPort: true,
     proxy: {
-      '/api': {
-        target: 'http://localhost:8080',
+      // friendly local path for the mock AI server used by the cockpit preview
+      '/dev-mock-ai': {
+        target: 'http://localhost:8787',
         changeOrigin: true,
         secure: false,
-        ws: true,
-      }
-    }
+        rewrite: path => path.replace(/^\/dev-mock-ai/, '/'),
+      },
+    },
   },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src')
-    }
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom']
-        }
-      }
-    }
-  }
-})
+  preview: { host: '127.0.0.1', port: 8080 },
+});
