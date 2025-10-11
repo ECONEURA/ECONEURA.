@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECONEURA - Test E2E</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #0f0f1e; color: white; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="container mx-auto p-8">
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold mb-2">🧠 ECONEURA Gateway Test</h1>
+            <p class="text-gray-400">Test E2E: Frontend → Gateway (8080) → Reception (3101)</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Agent Selector -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">🤖 Seleccionar Agente</h2>
+                <select id="agentSelect" class="w-full p-3 bg-gray-700 rounded text-white">
+                    <option value="neura-9">neura-9 - Reception (puerto 3101)</option>
+                    <option value="neura-1">neura-1 - Analytics</option>
+                    <option value="neura-3">neura-3 - CFO</option>
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div class="bg-gray-800 rounded-lg p-6">
+                <h2 class="text-xl font-bold mb-4">📊 Estado</h2>
+                <div id="status" class="space-y-2">
+                    <div class="flex items-center space-x-2">
+                        <div id="gatewayStatus" class="w-3 h-3 bg-gray-500 rounded-full"></div>
+                        <span>Gateway: Verificando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="mt-8 bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">💬 Chat</h2>
+            
+            <!-- Messages -->
+            <div id="messages" class="bg-gray-900 rounded p-4 h-96 overflow-y-auto mb-4">
+                <p class="text-gray-500 text-center">Envía un mensaje para comenzar...</p>
+            </div>
+
+            <!-- Input -->
+            <div class="flex space-x-3">
+                <input 
+                    type="text" 
+                    id="messageInput" 
+                    placeholder="Escribe tu mensaje..."
+                    class="flex-1 p-3 bg-gray-700 rounded text-white"
+                    onkeypress="if(event.key==='Enter') sendMessage()"
+                />
+                <button 
+                    onclick="sendMessage()"
+                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded font-bold"
+                >
+                    📤 Enviar
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Log -->
+        <div class="mt-8 bg-gray-800 rounded-lg p-6">
+            <h2 class="text-xl font-bold mb-4">📝 Test Log</h2>
+            <pre id="log" class="bg-gray-900 p-4 rounded text-xs text-green-400 h-48 overflow-y-auto"></pre>
+        </div>
+    </div>
+
+    <script>
+        const GATEWAY_URL = 'http://localhost:8080';
+        
+        function log(message) {
+            const logEl = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        async function checkHealth() {
+            try {
+                log('Verificando Gateway health...');
+                const response = await fetch(`${GATEWAY_URL}/api/health`);
+                const data = await response.json();
+                
+                document.getElementById('gatewayStatus').className = 'w-3 h-3 bg-green-500 rounded-full animate-pulse';
+                document.getElementById('status').innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <span>Gateway: ✅ Online (${data.agents_configured} agentes)</span>
+                    </div>
+                `;
+                log(`✅ Gateway OK: ${data.service} v${data.version}`);
+                log(`📋 Agentes configurados: ${data.agents_configured}`);
+                return true;
+            } catch (error) {
+                document.getElementById('gatewayStatus').className = 'w-3 h-3 bg-red-500 rounded-full';
+                log(`❌ Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const agentId = document.getElementById('agentSelect').value;
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+
+            log(`📤 Enviando a ${agentId}: "${message}"`);
+
+            try {
+                const payload = {
+                    input: { message },
+                    user_id: 'web-test-user',
+                    correlation_id: `test-${Date.now()}`
+                };
+
+                log(`🔄 POST ${GATEWAY_URL}/api/invoke/${agentId}`);
+                
+                const response = await fetch(`${GATEWAY_URL}/api/invoke/${agentId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Correlation-Id': payload.correlation_id
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                log(`📥 Status: ${response.status} ${response.statusText}`);
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const output = data.output || JSON.stringify(data, null, 2);
+                    addMessage('assistant', output);
+                    log(`✅ Respuesta recibida (${output.length} chars)`);
+                } else {
+                    const error = data.error || data.detail || 'Error desconocido';
+                    addMessage('assistant', `❌ Error: ${error}`);
+                    log(`⚠️ Error del agente: ${error}`);
+                }
+
+            } catch (error) {
+                addMessage('assistant', `❌ Error de conexión: ${error.message}`);
+                log(`❌ Error fatal: ${error.message}`);
+            }
+        }
+
+        function addMessage(role, content) {
+            const messagesEl = document.getElementById('messages');
+            
+            // Remove placeholder
+            if (messagesEl.querySelector('.text-gray-500')) {
+                messagesEl.innerHTML = '';
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-4 ${role === 'user' ? 'text-right' : 'text-left'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="inline-block max-w-[80%] p-4 rounded-lg ${
+                    role === 'user' 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-gray-700 text-gray-100'
+                }">
+                    <div class="flex items-start space-x-2">
+                        <div class="text-xl">${role === 'user' ? '👤' : '🤖'}</div>
+                        <div class="flex-1 whitespace-pre-wrap break-words">${content}</div>
+                    </div>
+                    <div class="text-xs opacity-75 mt-2">
+                        ${new Date().toLocaleTimeString()}
+                    </div>
+                </div>
+            `;
+            
+            messagesEl.appendChild(messageDiv);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+        }
+
+        // Check health on load
+        window.addEventListener('load', () => {
+            log('🚀 Iniciando test E2E...');
+            checkHealth();
+        });
+    </script>
+</body>
+</html>

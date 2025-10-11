@@ -1,0 +1,94 @@
+============================================
+FIX PARA EconeuraCockpit.tsx
+============================================
+
+UBICACIÓN: apps/web/src/EconeuraCockpit.tsx
+LÍNEAS: 82-98
+
+REEMPLAZAR ESTA FUNCIÓN:
+------------------------
+
+async function invokeAgent(agentId: string, route: 'local' | 'azure' = 'azure', payload: any = {}) {
+  if (!env.GW_URL || !env.GW_KEY) {
+    return { ok: true, simulated: true, output: `Simulado ${agentId}` };
+  }
+  const url = `${String(env.GW_URL).replace(/\/$/, '')}/api/invoke/${agentId}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${env.GW_KEY}`,
+      'X-Route': route,
+      'X-Correlation-Id': correlationId(),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ input: payload?.input ?? "", policy: { pii: 'mask' }, meta: { agentId, source: 'ui' } }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json().catch(() => ({}));
+}
+
+
+POR ESTA NUEVA FUNCIÓN:
+-----------------------
+
+async function invokeAgent(agentId: string, route: 'local' | 'azure' = 'azure', payload: any = {}) {
+  // DESARROLLO: usar proxy local /api/invoke (Vite → backend:8080 → OpenAI)
+  const url = `/api/invoke/${agentId}`;
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer dev-token-local-123',
+        'X-Route': route,
+        'X-Correlation-Id': correlationId(),
+      },
+      body: JSON.stringify({ input: payload?.input ?? "" }),
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Error backend ${res.status}:`, errorText);
+      return { ok: false, output: `Error: ${errorText || 'Sin respuesta del servidor'}` };
+    }
+
+    const data = await res.json();
+    console.log('Respuesta backend:', data);
+    return { ok: true, output: data.output || JSON.stringify(data) };
+
+  } catch (error: any) {
+    console.error('Error al conectar con backend:', error);
+    return { ok: false, output: `No se puede conectar con el servidor: ${error.message}` };
+  }
+}
+
+
+EXPLICACIÓN:
+------------
+
+1. ANTES: Requería env.GW_URL y env.GW_KEY que no existen → devolvía "Simulado"
+2. AHORA: Usa /api/invoke/${agentId} que Vite proxea a localhost:8080
+3. El backend en puerto 8080 conecta con OpenAI y devuelve la respuesta
+4. Agregamos console.log para debugging en DevTools
+
+
+PASOS PARA APLICAR:
+-------------------
+
+1. Abrir: apps/web/src/EconeuraCockpit.tsx
+2. Buscar la línea 82: "async function invokeAgent"
+3. Reemplazar toda la función (hasta la línea 98) con la nueva versión
+4. Guardar el archivo
+5. Vite recargará automáticamente
+6. Probar "HOLA" en el chat
+
+
+VERIFICACIÓN:
+-------------
+
+✅ Backend responde: http://192.168.1.182:3000/api/health
+✅ Chat funciona en PowerShell: Invoke-RestMethod -Uri "http://192.168.1.182:3000/api/invoke/neura-ceo" -Method Post -Body '{"input":"Hola"}' -ContentType "application/json"
+❌ Chat falla en navegador: porque usa función invokeAgent incorrecta
+
+Con este fix, el navegador usará el mismo endpoint que funciona en PowerShell.

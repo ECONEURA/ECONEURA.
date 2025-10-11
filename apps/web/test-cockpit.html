@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECONEURA Cockpit - Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom right, #111827, #1e3a8a, #111827);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Header -->
+    <header class="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="text-3xl">🧠</div>
+                    <div>
+                        <h1 class="text-2xl font-bold">ECONEURA</h1>
+                        <p class="text-sm text-gray-400">AI Agents Platform - Test Version</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-sm">
+                        <div id="status-indicator" class="w-2 h-2 bg-gray-500 rounded-full"></div>
+                        <span id="status-text" class="text-gray-300">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Agent Selector -->
+            <div class="lg:col-span-3">
+                <div class="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 sticky top-24">
+                    <h2 class="text-lg font-bold mb-4 flex items-center">
+                        <span class="mr-2">🤖</span>
+                        Agentes Disponibles
+                    </h2>
+                    <div id="agent-list" class="space-y-2">
+                        <!-- Agents will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div class="lg:col-span-9">
+                <div id="chat-container" class="bg-gray-800/50 backdrop-blur-sm rounded-lg flex flex-col h-[calc(100vh-200px)]">
+                    <!-- Welcome Screen -->
+                    <div id="welcome-screen" class="flex items-center justify-center h-full">
+                        <div class="text-center">
+                            <div class="text-6xl mb-4">🤖</div>
+                            <h2 class="text-2xl font-bold mb-2">Bienvenido a ECONEURA</h2>
+                            <p class="text-gray-400">Selecciona un agente de la lista para comenzar</p>
+                        </div>
+                    </div>
+
+                    <!-- Chat Screen (hidden initially) -->
+                    <div id="chat-screen" class="hidden flex flex-col h-full">
+                        <!-- Agent Header -->
+                        <div class="p-4 border-b border-gray-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 id="agent-name" class="text-xl font-bold"></h2>
+                                    <p id="agent-desc" class="text-sm text-gray-400"></p>
+                                </div>
+                                <button onclick="clearChat()" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded transition">
+                                    Limpiar
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div id="messages" class="flex-1 overflow-y-auto p-4 space-y-4">
+                            <!-- Messages will appear here -->
+                        </div>
+
+                        <!-- Input Form -->
+                        <div class="p-4 border-t border-gray-700">
+                            <form id="chat-form" class="flex space-x-3">
+                                <input
+                                    type="text"
+                                    id="message-input"
+                                    placeholder="Escribe tu mensaje..."
+                                    class="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                                <button
+                                    type="submit"
+                                    id="send-button"
+                                    class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                                >
+                                    📤 Enviar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Agents configuration
+        const AGENTS = [
+            { id: 'neura-1', name: 'Analytics', description: 'Data analysis and business intelligence', port: 8101 },
+            { id: 'neura-2', name: 'CDO', description: 'Chief Data Officer - Data strategy', port: 8102 },
+            { id: 'neura-3', name: 'CFO', description: 'Chief Financial Officer - Financial planning', port: 8103 },
+            { id: 'neura-4', name: 'CHRO', description: 'Chief HR Officer - Human resources', port: 8104 },
+            { id: 'neura-5', name: 'CISO', description: 'Chief Security Officer - Cybersecurity', port: 8105 },
+            { id: 'neura-6', name: 'CMO', description: 'Chief Marketing Officer - Marketing strategy', port: 8106 },
+            { id: 'neura-7', name: 'CTO', description: 'Chief Technology Officer - Tech leadership', port: 8107 },
+            { id: 'neura-8', name: 'Legal', description: 'Legal counsel and compliance', port: 8108 },
+            { id: 'neura-9', name: 'Reception', description: 'First contact and routing assistant', port: 3101 },
+            { id: 'neura-10', name: 'Research', description: 'Research and development specialist', port: 8110 },
+            { id: 'neura-11', name: 'Support', description: 'Technical support and troubleshooting', port: 8111 },
+        ];
+
+        let selectedAgent = null;
+
+        // Check gateway health on load
+        async function checkHealth() {
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                if (data.status === 'ok') {
+                    document.getElementById('status-indicator').className = 'w-2 h-2 bg-green-500 rounded-full animate-pulse';
+                    document.getElementById('status-text').textContent = 'Gateway Online';
+                } else {
+                    throw new Error('Gateway not healthy');
+                }
+            } catch (error) {
+                document.getElementById('status-indicator').className = 'w-2 h-2 bg-red-500 rounded-full';
+                document.getElementById('status-text').textContent = 'Gateway Offline';
+            }
+        }
+
+        // Load agents into sidebar
+        function loadAgents() {
+            const agentList = document.getElementById('agent-list');
+            agentList.innerHTML = AGENTS.map(agent => `
+                <button
+                    onclick="selectAgent('${agent.id}')"
+                    id="agent-btn-${agent.id}"
+                    class="w-full text-left p-3 rounded-lg transition-all bg-gray-700/50 text-gray-300 hover:bg-gray-700"
+                >
+                    <div class="font-semibold text-sm">${agent.name}</div>
+                    <div class="text-xs opacity-75 mt-1">${agent.description}</div>
+                </button>
+            `).join('');
+        }
+
+        // Select an agent
+        function selectAgent(agentId) {
+            const agent = AGENTS.find(a => a.id === agentId);
+            if (!agent) return;
+
+            selectedAgent = agent;
+
+            // Update UI
+            document.getElementById('welcome-screen').classList.add('hidden');
+            document.getElementById('chat-screen').classList.remove('hidden');
+            document.getElementById('agent-name').textContent = agent.name;
+            document.getElementById('agent-desc').textContent = agent.description;
+
+            // Update button styles
+            AGENTS.forEach(a => {
+                const btn = document.getElementById(`agent-btn-${a.id}`);
+                if (a.id === agentId) {
+                    btn.className = 'w-full text-left p-3 rounded-lg transition-all bg-blue-600 text-white shadow-lg';
+                } else {
+                    btn.className = 'w-full text-left p-3 rounded-lg transition-all bg-gray-700/50 text-gray-300 hover:bg-gray-700';
+                }
+            });
+
+            // Clear messages
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Send message
+        document.getElementById('chat-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedAgent) return;
+
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+
+            // Disable form
+            input.disabled = true;
+            document.getElementById('send-button').disabled = true;
+            document.getElementById('send-button').textContent = '⏳ Enviando...';
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+
+            try {
+                // Call gateway
+                const response = await fetch(`/api/invoke/${selectedAgent.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Correlation-Id': `web-${Date.now()}`
+                    },
+                    body: JSON.stringify({
+                        input: { message },
+                        user_id: 'web-user',
+                        correlation_id: `web-${Date.now()}`
+                    })
+                });
+
+                const data = await response.json();
+
+                // Add assistant response
+                if (response.ok) {
+                    addMessage('assistant', data.output || JSON.stringify(data));
+                } else {
+                    addMessage('assistant', `❌ Error: ${data.error || data.detail || 'Unknown error'}`);
+                }
+            } catch (error) {
+                addMessage('assistant', `❌ Error: ${error.message}`);
+            } finally {
+                // Re-enable form
+                input.disabled = false;
+                document.getElementById('send-button').disabled = false;
+                document.getElementById('send-button').textContent = '📤 Enviar';
+                input.focus();
+            }
+        });
+
+        // Add message to chat
+        function addMessage(role, content) {
+            const messagesDiv = document.getElementById('messages');
+            const time = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="max-w-[80%] p-4 rounded-lg ${role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-100'}">
+                    <div class="flex items-start space-x-2">
+                        <div class="text-lg">${role === 'user' ? '👤' : '🤖'}</div>
+                        <div class="flex-1">
+                            <div class="whitespace-pre-wrap break-words">${content}</div>
+                            <div class="text-xs mt-2 ${role === 'user' ? 'text-blue-200' : 'text-gray-400'}">${time}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            messagesDiv.appendChild(messageDiv);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Clear chat
+        function clearChat() {
+            document.getElementById('messages').innerHTML = '';
+        }
+
+        // Initialize
+        checkHealth();
+        loadAgents();
+        setInterval(checkHealth, 30000); // Check every 30s
+    </script>
+</body>
+</html>

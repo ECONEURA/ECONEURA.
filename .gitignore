@@ -1,0 +1,63 @@
+node_modules/
+.env
+/.devcontainer/
+/.vscode/
+/.cache/
+/.pnpm-store/
+/.playwright/
+coverage/
+artifacts/
+dist/
+node_modules
+dist
+.vite
+.vscode/*.log
+apps/web/.vite.pid
+
+# Ignore dev cockpit artifacts
+.dev/cockpit/*.pid
+.dev/cockpit/package-lock.json
+.dev/cockpit/server.*
+
+# Generated and workspace artifacts
+coverage
+**/coverage
+**/dist
+**/node_modules
+*.tsbuildinfo
+.disabled-packages/
+packages/*/coverage
+packages/*/dist
+apps/*/dist
+
+# Generated reports from CI/tools
+reports/
+
+# Local backups and temporary artifacts
+.econeura_backup/
+backups/
+*.log
+.github/workflows/backups/
+*.backup
+apps/web/package-lock.json
+# Ignore compiled JS artifacts accidentally checked into source
+apps/web/src/*.js
+apps/web/src/**/*.js
+ 
+# Coverage/diagnostics artifacts created by scripts (should not be tracked)
+.artifacts/
+
+# Temporary files and session artifacts (never commit)
+tmp_*
+*.tmp
+*.bak
+.ai_*
+cleanup_backup_*
+lib/*.backup
+*.backup
+
+# Session and runtime artifacts
+.automation-trigger
+.vitest_mode
+
+.vercel
