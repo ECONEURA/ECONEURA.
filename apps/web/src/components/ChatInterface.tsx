@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Agent } from '../App'
+import { Agent } from '../EconeuraCockpit'
 import MessageList from './MessageList'
 import { invokeAgent } from '../api/gateway'
 
@@ -76,17 +76,14 @@ export default function ChatInterface({ agent }: ChatInterfaceProps) {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold text-white">
-              {agent.name}
+              {agent.title}
             </h2>
             <p className="text-sm text-gray-400">
-              {agent.description}
+              {agent.desc}
             </p>
           </div>
           
           <div className="flex items-center space-x-2">
-            <div className="text-xs text-gray-500">
-              Puerto: {agent.port}
-            </div>
             {messages.length > 0 && (
               <button
                 onClick={handleClear}
@@ -120,7 +117,7 @@ export default function ChatInterface({ agent }: ChatInterfaceProps) {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={`Escribe tu mensaje para ${agent.name}...`}
+            placeholder={`Escribe tu mensaje para ${agent.title}...`}
             disabled={isLoading}
             className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
           />

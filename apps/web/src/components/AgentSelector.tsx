@@ -1,4 +1,4 @@
-import { Agent } from '../App'
+import { Agent } from '../EconeuraCockpit'
 
 interface AgentSelectorProps {
   agents: Agent[]
@@ -25,9 +25,9 @@ export default function AgentSelector({ agents, selectedAgent, onSelectAgent }: 
                 : 'bg-gray-700/50 text-gray-300 hover:bg-gray-700'
             }`}
           >
-            <div className="font-semibold text-sm">{agent.name}</div>
+            <div className="font-semibold text-sm">{agent.title}</div>
             <div className="text-xs opacity-75 mt-1 line-clamp-2">
-              {agent.description}
+              {agent.desc}
             </div>
           </button>
         ))}
